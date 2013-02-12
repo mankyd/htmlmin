@@ -35,7 +35,7 @@ class HTMLMinParser(HTMLParser):
     return result + '>'
 
   def handle_decl(self, decl):
-    self._data_buffer += '<!' + decl + '>'
+    self._data_buffer += '<!' + decl + '>\n'
 
   def handle_starttag(self, tag, attrs):
     if tag in self.pre_tags or self._has_pre(attrs) or self._in_pre_tag > 0:
@@ -80,7 +80,7 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += '<?' + data + '>'
 
   def unknown_decl(self, data):
-    self._data_buffer += '<![' + data + ']>\n'
+    self._data_buffer += '<![' + data + ']>'
 
   def reset(self):
     self._data_buffer = ''
