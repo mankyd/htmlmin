@@ -9,11 +9,13 @@ PRE_TAGS = ('pre', 'script', 'style', 'textarea')
 whitespace_re = re.compile(r'\s+')
 
 class HTMLMinParser(HTMLParser):
-  def __init__(self, keep_pre=False, pre_tags=PRE_TAGS, keep_comments=True):
+  def __init__(self, keep_pre=False, pre_tags=PRE_TAGS, keep_comments=True,
+      keep_empty=True):
     HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
-    self.keep_comments = True
+    self.keep_comments = keep_comments
+    self.keep_empty = keep_empty
     self._data_buffer = ''
     self._in_pre_tag = 0
     self._body_started = False
@@ -67,8 +69,20 @@ class HTMLMinParser(HTMLParser):
     if self._in_pre_tag > 0:
       self._data_buffer += data
     else:
-      self._data_buffer += whitespace_re.sub(
-          ' ' if self._body_started else '', data)
+      if not self.keep_empty:
+        match = whitespace_re.match(data)
+        if match and match.end(0) == len(data):
+          return
+
+      new_data = whitespace_re.sub(' ' if self._body_started else '', data)
+
+      if self._in_pre_tag == 0:
+        # If we're not in a pre block, its possible that we append two spaces
+        # together, which we want to avoid. For instance, if we remove a comment
+        # from between two blocks of text: a <!-- B --> c => a  c.
+        if new_data[0] == ' ' and self._data_buffer[-1] == ' ':
+          new_data = new_data[1:]
+      self._data_buffer += new_data
 
   def handle_entityref(self, data):
     self._data_buffer += '&{};'.format(data)
@@ -90,8 +104,8 @@ class HTMLMinParser(HTMLParser):
   def result(self):
     return self._data_buffer
 
-def minify(input):
-  minifier = HTMLMinParser()
+def minify(input, **kwargs):
+  minifier = HTMLMinParser(**kwargs)
   minifier.feed(input)
   minifier.close()
   return minifier.result
@@ -105,6 +119,9 @@ class Minifier(object):
 
   @property
   def output(self):
+    return self._parser.result
+
+  def finalize(self):
     self._parser.close()
     result = self._parser.result
     self._parser.reset()
@@ -113,4 +130,4 @@ class Minifier(object):
   def minify(self, input):
     self._parser.reset()
     self.input(input)
-    return self.output
+    return self.finalize()
