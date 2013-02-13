@@ -50,6 +50,22 @@ test command runs project's unit tests without actually deploying it, by
     '<body> <div id="x"  >  A </div>  <div id="  y ">  B    </div>  </body>',
     '<body><div id="x"> A </div><div id="  y "> B </div></body>',
   ),
+  'p_self_close': (
+    '<body>  <p pre  >  X  <p>  Y  ',
+    '<body> <p>  X  <p> Y ',
+  ),
+  'li_self_close': (
+    '<body> <ul>  <li pre  >  X  <li>  Y  <li pre>  Z</ul>   Q',
+    '<body> <ul> <li>  X  <li> Y <li>  Z</ul> Q',
+  ),
+  'dt_self_close': (
+    '<body> <dl>  <dt pre  >  X  <dt>  Y  <dt pre>  Z</dt></dl>   Q',
+    '<body> <dl> <dt>  X  <dt> Y <dt>  Z</dt></dl> Q',
+  ),
+  'dd_self_close': (
+    '<body> <dl>  <dd pre  >  X  <dd>  Y  <dd pre>  Z</dl>   Q',
+    '<body> <dl> <dd>  X  <dd> Y <dd>  Z</dl> Q',
+  ),
 }
 class TestMinifyFunction(unittest.TestCase):
   def test_simple_text(self):
@@ -111,6 +127,23 @@ class TestMinifyOptions(unittest.TestCase):
   def test_remove_empty(self):
     text = REFERENCE_TEXTS['remove_empty']
     self.assertEqual(htmlmin.minify(text[0], keep_empty=False), text[1])
+
+class TestSelfClosingTags(unittest.TestCase):
+  def test_p_self_close(self):
+    text = REFERENCE_TEXTS['p_self_close']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
+
+  def test_li_self_close(self):
+    text = REFERENCE_TEXTS['li_self_close']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
+
+  def test_dt_self_close(self):
+    text = REFERENCE_TEXTS['dt_self_close']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
+
+  def test_dd_self_close(self):
+    text = REFERENCE_TEXTS['dd_self_close']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
 
 if __name__ == '__main__':
   unittest.main()
