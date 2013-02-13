@@ -5,7 +5,7 @@ try:
 except ImportError:
   from HTMLParser import HTMLParser
 
-PRE_TAGS = ('pre', 'script', 'style', 'textarea')
+PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 whitespace_re = re.compile(r'\s+')
 
 class HTMLMinParser(HTMLParser):
@@ -40,7 +40,10 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += '<!' + decl + '>\n'
 
   def handle_starttag(self, tag, attrs):
-    if tag in self.pre_tags or self._has_pre(attrs) or self._in_pre_tag > 0:
+    if (tag in self.pre_tags or 
+        tag in ('script', 'style') or 
+        self._has_pre(attrs) or 
+        self._in_pre_tag > 0):
       self._in_pre_tag += 1
     if tag == 'body':
       self._body_started = True
@@ -75,6 +78,8 @@ class HTMLMinParser(HTMLParser):
           return
 
       new_data = whitespace_re.sub(' ' if self._body_started else '', data)
+      if not new_data:
+        return
 
       if self._in_pre_tag == 0:
         # If we're not in a pre block, its possible that we append two spaces
