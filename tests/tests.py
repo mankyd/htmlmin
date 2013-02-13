@@ -28,7 +28,7 @@ test command runs project's unit tests without actually deploying it, by
   ),
   'simple_html': (
     ('<body> <b>  a <i pre>b  </i>'  # <b> is not closed
-     '<pre>   x </pre> <textarea>   Y  </textarea></body>'), 
+     '<pre>   x </pre> <textarea>   Y  </textarea></body>'),
     '<body> <b> a <i>b  </i><pre>   x </pre> <textarea>   Y  </textarea></body>'
   ),
 }
@@ -68,7 +68,7 @@ FEATURES_TEXTS = {
   ),
   'dont_minify_scripts_or_styles': (
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
-    '<body><script>   X  </script><style>   X</style></body>',
+    '<body> <script>   X  </script> <style>   X</style> </body>',
   ),
 }
 
@@ -183,11 +183,11 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_remove_comments(self):
     text = self.__reference_texts__['remove_comments']
-    self.assertEqual(htmlmin.minify(text[0], keep_comments=False), text[1])
+    self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
   def test_keep_comments(self):
     text = self.__reference_texts__['keep_comments']
-    self.assertEqual(htmlmin.minify(text[0], keep_comments=False), text[1])
+    self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
   def test_keep_pre(self):
     text = self.__reference_texts__['keep_pre']
@@ -199,7 +199,7 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_remove_empty(self):
     text = self.__reference_texts__['remove_empty']
-    self.assertEqual(htmlmin.minify(text[0], keep_empty=False), text[1])
+    self.assertEqual(htmlmin.minify(text[0], remove_empty_space=True), text[1])
 
   def test_dont_minify_div(self):
     text = self.__reference_texts__['dont_minify_div']
@@ -215,7 +215,7 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_dont_minify_scripts_or_styles(self):
     text = self.__reference_texts__['dont_minify_scripts_or_styles']
-    self.assertEqual(htmlmin.minify(text[0], pre_tags=[], keep_empty=False), text[1])
+    self.assertEqual(htmlmin.minify(text[0], pre_tags=[]), text[1])
 
 class TestSelfClosingTags(HTMLMinTestCase):
   __reference_texts__ = SELF_CLOSE_TEXTS
