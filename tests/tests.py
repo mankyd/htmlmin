@@ -101,6 +101,42 @@ SELF_CLOSE_TEXTS = {
     ('<body> <select a> <option>   X    '
      '<option> Y </option></select> </body>'),
   ),
+  'tbody_self_close': (
+    ('<body>  <table>   <tbody pre>  <tr>  <td> X  </td></tr>  \n'
+     '\n  <tbody>   <tr>   <td>Y   </td></tr>\n\n\n   </body>'),
+    ('<body> <table> <tbody>  <tr>  <td> X  </td></tr>  \n'
+     '\n  <tbody> <tr> <td>Y </td></tr> </body>'),
+  ),
+  'thead_self_close': (
+    ('<body>  <table>   <thead pre>  <tr>  <td> X  </td></tr>  '
+     '  <tbody>   <tr>   <td>Y   </td></tr> </body>'),
+    ('<body> <table> <thead>  <tr>  <td> X  </td></tr>  '
+     '  <tbody> <tr> <td>Y </td></tr> </body>'),
+  ),
+  'tfoot_self_close': (
+    ('<body>  <table>   <tfoot pre>  <tr>  <td> X  </td></tr>  '
+     '  <tbody>   <tr>   <td>Y   </td></tr> </body>'),
+    ('<body> <table> <tfoot>  <tr>  <td> X  </td></tr>  '
+     '  <tbody> <tr> <td>Y </td></tr> </body>'),
+  ),
+  'tr_self_close': (
+    ('<body>  <table>   <thead>  <tr pre >  <td> X  </td>  '
+     '    <tr>   <td>Y   </td> </body>'),
+    ('<body> <table> <thead> <tr>  <td> X  </td>  '
+     '    <tr> <td>Y </td> </body>'),
+  ),
+  'td_self_close': (
+    ('<body>  <table>   <thead>  <tr>  <td  pre> X    '
+     '   <td>Y    </body>'),
+    ('<body> <table> <thead> <tr> <td> X    '
+     '   <td>Y </body>'),
+  ),
+  'th_self_close': (
+    ('<body>  <table>   <thead>  <tr>  <th pre> X    '
+     '    <th>Y    </body>'),
+    ('<body> <table> <thead> <tr> <th> X    '
+     '    <th>Y </body>'),
+  ),
 }
 
 class HTMLMinTestMeta(type):
