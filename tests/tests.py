@@ -2,7 +2,7 @@ import unittest
 
 import htmlmin
 
-REFERENCE_TEXTS = {
+MINIFY_FUNCTION_TEXTS = {
   'simple_text': (
     '<body>  a  b</body>',
     '<body> a b</body>'
@@ -31,6 +31,9 @@ test command runs project's unit tests without actually deploying it, by
      '<pre>   x </pre> <textarea>   Y  </textarea></body>'), 
     '<body> <b> a <i>b  </i><pre>   x </pre> <textarea>   Y  </textarea></body>'
   ),
+}
+
+FEATURES_TEXTS = {
   'remove_comments': (
     '<body> this text should <!-- X --> have comments removed</body>',
     '<body> this text should have comments removed</body>',
@@ -67,6 +70,9 @@ test command runs project's unit tests without actually deploying it, by
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
     '<body><script>   X  </script><style>   X</style></body>',
   ),
+}
+
+SELF_CLOSE_TEXTS = {
   'p_self_close': (
     '<body>  <p pre  >  X  <p>  Y  ',
     '<body> <p>  X  <p> Y ',
@@ -83,100 +89,100 @@ test command runs project's unit tests without actually deploying it, by
     '<body> <dl>  <dd pre  >  X  <dd>  Y  <dd pre>  Z</dl>   Q',
     '<body> <dl> <dd>  X  <dd> Y <dd>  Z</dl> Q',
   ),
+  'optgroup_self_close': (
+    ('<body>   <select  a >  <optgroup pre>   <option>   X</option>   '
+     '<optgroup>   <option>   Y</option> </optgroup> </select>   </body>'),
+    ('<body> <select a> <optgroup>   <option>   X</option>   '
+     '<optgroup> <option> Y</option> </optgroup> </select> </body>'),
+  ),
+  'option_self_close': (
+    ('<body>   <select  a >  <option pre  >   X    '
+     '<option> Y    </option></select>   </body>'),
+    ('<body> <select a> <option>   X    '
+     '<option> Y </option></select> </body>'),
+  ),
 }
-class TestMinifyFunction(unittest.TestCase):
-  def test_simple_text(self):
-    text = REFERENCE_TEXTS['simple_text']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
 
-  def test_long_text(self):
-    text = REFERENCE_TEXTS['long_text']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
+class HTMLMinTestMeta(type):
+  def __new__(cls, name, bases, dct):
+    def make_test(text):
+      def inner_test(self):
+        self.assertEqual(self.minify(text[0]), text[1])
+      return inner_test
 
-  def test_simple_html(self):
-    text = REFERENCE_TEXTS['simple_html']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
+    for k, v in dct.get('__reference_texts__',{}).iteritems():
+      if 'test_'+k not in dct:
+        dct['test_'+k] = make_test(v)
+    return type.__new__(cls, name, bases, dct)
 
-class TestMinifierObject(unittest.TestCase):
+class HTMLMinTestCase(unittest.TestCase):
+  __metaclass__ = HTMLMinTestMeta
   def setUp(self):
+    self.minify = htmlmin.minify
+
+class TestMinifyFunction(HTMLMinTestCase):
+  __reference_texts__ = MINIFY_FUNCTION_TEXTS
+
+class TestMinifierObject(HTMLMinTestCase):
+  __reference_texts__ = MINIFY_FUNCTION_TEXTS
+
+  def setUp(self):
+    HTMLMinTestCase.setUp(self)
     self.minifier = htmlmin.Minifier()
-
-  def test_simple_text(self):
-    text = REFERENCE_TEXTS['simple_text']
-    self.assertEqual(self.minifier.minify(text[0]), text[1])
-
-  def test_simple_long_text(self):
-    text = REFERENCE_TEXTS['long_text']
-    self.assertEqual(self.minifier.minify(text[0]), text[1])
-
-  def test_simple_html(self):
-    text = REFERENCE_TEXTS['simple_html']
-    self.assertEqual(self.minifier.minify(text[0]), text[1])
+    self.minify = self.minifier.minify
 
   def test_reuse(self):
-    text = REFERENCE_TEXTS['simple_text']
-    self.assertEqual(self.minifier.minify(text[0]), text[1])
-    self.assertEqual(self.minifier.minify(text[0]), text[1])
+    text = self.__reference_texts__['simple_text']
+    self.assertEqual(self.minify(text[0]), text[1])
+    self.assertEqual(self.minify(text[0]), text[1])
 
   def test_buffered_input(self):
-    text = REFERENCE_TEXTS['long_text']
+    text = self.__reference_texts__['long_text']
     self.minifier.input(text[0][:len(text[0]) // 2])
     self.minifier.input(text[0][len(text[0]) // 2:])
     self.assertEqual(self.minifier.finalize(), text[1])
 
-class TestMinifyOptions(unittest.TestCase):
+class TestMinifyFeatures(HTMLMinTestCase):
+  __reference_texts__ = FEATURES_TEXTS
+
   def test_remove_comments(self):
-    text = REFERENCE_TEXTS['remove_comments']
+    text = self.__reference_texts__['remove_comments']
     self.assertEqual(htmlmin.minify(text[0], keep_comments=False), text[1])
 
   def test_keep_comments(self):
-    text = REFERENCE_TEXTS['keep_comments']
+    text = self.__reference_texts__['keep_comments']
     self.assertEqual(htmlmin.minify(text[0], keep_comments=False), text[1])
 
   def test_keep_pre(self):
-    text = REFERENCE_TEXTS['keep_pre']
+    text = self.__reference_texts__['keep_pre']
     self.assertEqual(htmlmin.minify(text[0], keep_pre=True), text[1])
 
   def test_keep_empty(self):
-    text = REFERENCE_TEXTS['keep_empty']
+    text = self.__reference_texts__['keep_empty']
     self.assertEqual(htmlmin.minify(text[0]), text[1])
 
   def test_remove_empty(self):
-    text = REFERENCE_TEXTS['remove_empty']
+    text = self.__reference_texts__['remove_empty']
     self.assertEqual(htmlmin.minify(text[0], keep_empty=False), text[1])
 
   def test_dont_minify_div(self):
-    text = REFERENCE_TEXTS['dont_minify_div']
+    text = self.__reference_texts__['dont_minify_div']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=('div',)), text[1])
 
   def test_minify_pre(self):
-    text = REFERENCE_TEXTS['minify_pre']
+    text = self.__reference_texts__['minify_pre']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=('div',)), text[1])
 
   def test_remove_head_spaces(self):
-    text = REFERENCE_TEXTS['remove_head_spaces']
+    text = self.__reference_texts__['remove_head_spaces']
     self.assertEqual(htmlmin.minify(text[0]), text[1])
 
   def test_dont_minify_scripts_or_styles(self):
-    text = REFERENCE_TEXTS['dont_minify_scripts_or_styles']
+    text = self.__reference_texts__['dont_minify_scripts_or_styles']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=[], keep_empty=False), text[1])
 
-class TestSelfClosingTags(unittest.TestCase):
-  def test_p_self_close(self):
-    text = REFERENCE_TEXTS['p_self_close']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
-
-  def test_li_self_close(self):
-    text = REFERENCE_TEXTS['li_self_close']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
-
-  def test_dt_self_close(self):
-    text = REFERENCE_TEXTS['dt_self_close']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
-
-  def test_dd_self_close(self):
-    text = REFERENCE_TEXTS['dd_self_close']
-    self.assertEqual(htmlmin.minify(text[0]), text[1])
+class TestSelfClosingTags(HTMLMinTestCase):
+  __reference_texts__ = SELF_CLOSE_TEXTS
 
 if __name__ == '__main__':
   unittest.main()
