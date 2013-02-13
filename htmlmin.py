@@ -48,9 +48,9 @@ class HTMLMinParser(HTMLParser):
   def handle_decl(self, decl):
     self._data_buffer += '<!' + decl + '>\n'
 
-  def in_tag(self, tag):
+  def in_tag(self, *tags):
     for t in self._tag_stack:
-      if t[0] == tag:
+      if t[0] in tags:
         return t
     return False
 
@@ -69,28 +69,26 @@ class HTMLMinParser(HTMLParser):
     if tag == 'body':
       self._body_started = True
 
-    in_p = self.in_tag('p')
-    if in_p:  # see if we need to close our p tag
-      if tag in ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 
-                 'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 
-                 'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p',
-                 'pre', 'section', 'table', 'ul'):
-        self._in_pre_tag -= self._close_tags_up_to('p')
-
-    in_li = self.in_tag('li')
-    if in_li:
-      if tag == 'li':
-        self._in_pre_tag -= self._close_tags_up_to('li')
-
-    in_dt = self.in_tag('dt')
-    if in_dt:
-      if tag in ('dt', 'dd'):
-        self._in_pre_tag -= self._close_tags_up_to('dt')
-
-    in_dd = self.in_tag('dd')
-    if in_dd:
-      if tag in ('dt', 'dd'):
-        self._in_pre_tag -= self._close_tags_up_to('dd')
+    tag_sets = ( # a list of tags and tags that they are closed by
+      (('li',), ('li',)),
+      (('dd', 'dt',), ('dd', 'dt',)),
+      (('rp', 'rt',), ('rp', 'rt',)),
+      (('p',), ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 
+                'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 
+                'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p',
+                'pre', 'section', 'table', 'ul')),
+      (('optgroup',), ('optgroup',)),
+      (('option',), ('option', 'optgroup')),
+      #colgroup?
+      (('tbody', 'thead',), ('tbody', 'tfoot')),
+      (('tfoot',), ('tbody',)),
+      (('tr',), ('tr',)),
+      (('td', 'th'), ('td', 'th')),
+      )
+    for open_tags, closed_by_tags in tag_sets:
+      in_tag = self.in_tag(*open_tags)
+      if in_tag and tag in closed_by_tags:
+        self._in_pre_tag -= self._close_tags_up_to(in_tag[0])
 
     start_pre = False
     if (tag in self.pre_tags or 
