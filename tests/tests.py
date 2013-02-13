@@ -126,16 +126,16 @@ SELF_CLOSE_TEXTS = {
      '    <tr> <td>Y </td> </body>'),
   ),
   'td_self_close': (
-    ('<body>  <table>   <thead>  <tr>  <td  pre> X    '
-     '   <td>Y    </body>'),
-    ('<body> <table> <thead> <tr> <td> X    '
-     '   <td>Y </body>'),
+    '<body>  <table>   <thead>  <tr>  <td  pre> X       <td>Y    </body>',
+    '<body> <table> <thead> <tr> <td> X       <td>Y </body>',
   ),
   'th_self_close': (
-    ('<body>  <table>   <thead>  <tr>  <th pre> X    '
-     '    <th>Y    </body>'),
-    ('<body> <table> <thead> <tr> <th> X    '
-     '    <th>Y </body>'),
+    '<body>  <table>   <thead>  <tr>  <th pre> X        <th>Y    </body>',
+    '<body> <table> <thead> <tr> <th> X        <th>Y </body>',
+  ),
+  'a_p_interaction': ( # the 'pre' functionality continues after the </a>
+    '<body><a>   <p pre>  X  </a>    <p>   Y</body>',
+    '<body><a> <p>  X  </a>    <p> Y</body>',
   ),
 }
 

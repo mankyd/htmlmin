@@ -13,7 +13,7 @@ whitespace_re = re.compile(r'\s+')
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
 
 class HTMLMinParser(HTMLParser):
-  def __init__(self, 
+  def __init__(self,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                remove_comments=False,
@@ -74,8 +74,8 @@ class HTMLMinParser(HTMLParser):
       (('li',), ('li',)),
       (('dd', 'dt',), ('dd', 'dt',)),
       (('rp', 'rt',), ('rp', 'rt',)),
-      (('p',), ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 
-                'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 
+      (('p',), ('address', 'article', 'aside', 'blockquote', 'dir', 'div',
+                'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4',
                 'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p',
                 'pre', 'section', 'table', 'ul')),
       (('optgroup',), ('optgroup',)),
@@ -92,9 +92,9 @@ class HTMLMinParser(HTMLParser):
         self._in_pre_tag -= self._close_tags_up_to(in_tag[0])
 
     start_pre = False
-    if (tag in self.pre_tags or 
-        tag in ('script', 'style') or 
-        self._has_pre(attrs) or 
+    if (tag in self.pre_tags or
+        tag in ('script', 'style') or
+        self._has_pre(attrs) or
         self._in_pre_tag > 0):
       self._in_pre_tag += 1
       start_pre = True
@@ -107,7 +107,21 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += self.build_tag(tag, attrs, False)
 
   def handle_endtag(self, tag):
-    self._in_pre_tag -= self._close_tags_up_to(tag)
+    # According to the spec, <p> tags don't get closed when a parent a
+    # tag closes them. Here's some logic that addresses this.
+    if tag == 'a':
+      contains_p = False
+      for i, t in enumerate(self._tag_stack):
+        if t[0] == 'p':
+          contains_p = True
+        elif t[0] == 'a':
+          break
+      if contains_p: # the p tag, and all its children should be left open
+        a_tag = self._tag_stack.pop(i)
+        if a_tag[1]:
+          self._in_pre_tag -= 1
+    else:
+      self._in_pre_tag -= self._close_tags_up_to(tag)
     self._data_buffer += '</{}>'.format(cgi.escape(tag))
 
   def handle_startendtag(self, tag, attrs):
