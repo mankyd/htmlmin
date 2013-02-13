@@ -6,7 +6,7 @@ REFERENCE_TEXTS = {
   'simple_text': (
     '<body>  a  b</body>',
     '<body> a b</body>'
-    ),
+  ),
   'long_text': (
     '''<body>When doing     test-driven development, or
     running automated builds that need testing before they are  deployed
@@ -27,8 +27,9 @@ test command runs project's unit tests without actually deploying it, by
       "ensure that any C extensions are built. </body> ")  # trailing whitespace
   ),
   'simple_html': (
-    '<body> <b>  a <i pre>b  </i><pre>   x </pre></body>',  # <b> is not closed
-    '<body> <b> a <i>b  </i><pre>   x </pre></body>'
+    ('<body> <b>  a <i pre>b  </i>'  # <b> is not closed
+     '<pre>   x </pre> <textarea>   Y  </textarea></body>'), 
+    '<body> <b> a <i>b  </i><pre>   x </pre> <textarea>   Y  </textarea></body>'
   ),
   'remove_comments': (
     '<body> this text should <!-- X --> have comments removed</body>',
@@ -49,6 +50,22 @@ test command runs project's unit tests without actually deploying it, by
   'remove_empty': (
     '<body> <div id="x"  >  A </div>  <div id="  y ">  B    </div>  </body>',
     '<body><div id="x"> A </div><div id="  y "> B </div></body>',
+  ),
+  'dont_minify_div': (
+    '<body>  <div>   X  </div>   </body>',
+    '<body> <div>   X  </div> </body>',
+  ),
+  'minify_pre': (
+    '<body>  <pre>   X  </pre>   </body>',
+    '<body> <pre> X </pre> </body>',
+  ),
+  'remove_head_spaces': (
+    '<head>  <title> hi   </title>  </head>',
+    '<head><title>hi</title></head>',
+  ),
+  'dont_minify_scripts_or_styles': (
+    '<body>  <script>   X  </script>  <style>   X</style>   </body>',
+    '<body><script>   X  </script><style>   X</style></body>',
   ),
 }
 class TestMinifyFunction(unittest.TestCase):
@@ -111,6 +128,22 @@ class TestMinifyOptions(unittest.TestCase):
   def test_remove_empty(self):
     text = REFERENCE_TEXTS['remove_empty']
     self.assertEqual(htmlmin.minify(text[0], keep_empty=False), text[1])
+
+  def test_dont_minify_div(self):
+    text = REFERENCE_TEXTS['dont_minify_div']
+    self.assertEqual(htmlmin.minify(text[0], pre_tags=('div',)), text[1])
+
+  def test_minify_pre(self):
+    text = REFERENCE_TEXTS['minify_pre']
+    self.assertEqual(htmlmin.minify(text[0], pre_tags=('div',)), text[1])
+
+  def test_remove_head_spaces(self):
+    text = REFERENCE_TEXTS['remove_head_spaces']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
+
+  def test_dont_minify_scripts_or_styles(self):
+    text = REFERENCE_TEXTS['dont_minify_scripts_or_styles']
+    self.assertEqual(htmlmin.minify(text[0], pre_tags=[], keep_empty=False), text[1])
 
 if __name__ == '__main__':
   unittest.main()
