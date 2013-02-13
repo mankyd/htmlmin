@@ -5,7 +5,8 @@ try:
 except ImportError:
   from HTMLParser import HTMLParser
 
-PRE_TAGS = ('pre', 'textarea') # script and style are _forced_
+PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
+
 whitespace_re = re.compile(r'\s+')
 
 # Tag omission rules:
@@ -133,6 +134,7 @@ class HTMLMinParser(HTMLParser):
       new_data = whitespace_re.sub(' ' if self._body_started else '', data)
       if not new_data:
         return
+
       if self._in_pre_tag == 0:
         # If we're not in a pre block, its possible that we append two spaces
         # together, which we want to avoid. For instance, if we remove a comment
