@@ -18,11 +18,11 @@ class OpenTagNotFoundError(ParseError): pass
 
 class HTMLMinParser(HTMLParser):
   def __init__(self,
-               keep_pre=False,
-               pre_tags=PRE_TAGS,
                remove_comments=False,
                remove_empty_space=False,
-               in_head=False):
+               in_head=False,
+               keep_pre=False,
+               pre_tags=PRE_TAGS,):
     HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
@@ -41,11 +41,11 @@ class HTMLMinParser(HTMLParser):
     return False
 
   def build_tag(self, tag, attrs, close_tag):
-    result = '<{}'.format(cgi.escape(tag))
+    result = u'<{}'.format(cgi.escape(tag))
     for k,v in attrs:
       result += ' ' + cgi.escape(k)
       if v is not None:
-        result += '="{}"'.format(cgi.escape(v))
+        result += u'="{}"'.format(cgi.escape(v))
     if close_tag:
       return result + ' />'
     return result + '>'
