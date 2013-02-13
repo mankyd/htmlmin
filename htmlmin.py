@@ -9,16 +9,16 @@ PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 whitespace_re = re.compile(r'\s+')
 
 class HTMLMinParser(HTMLParser):
-  def __init__(self, keep_pre=False, pre_tags=PRE_TAGS, keep_comments=True,
-      keep_empty=True):
+  def __init__(self, keep_pre=False, pre_tags=PRE_TAGS, remove_comments=False,
+      remove_empty_space=False, in_body=False):
     HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
-    self.keep_comments = keep_comments
-    self.keep_empty = keep_empty
+    self.remove_comments = remove_comments
+    self.remove_empty_space = remove_empty_space
     self._data_buffer = ''
     self._in_pre_tag = 0
-    self._body_started = False
+    self._body_started = in_body
 
   def _has_pre(self, attrs):
     for k,v in attrs:
@@ -40,9 +40,9 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += '<!' + decl + '>\n'
 
   def handle_starttag(self, tag, attrs):
-    if (tag in self.pre_tags or 
-        tag in ('script', 'style') or 
-        self._has_pre(attrs) or 
+    if (tag in self.pre_tags or
+        tag in ('script', 'style') or
+        self._has_pre(attrs) or
         self._in_pre_tag > 0):
       self._in_pre_tag += 1
     if tag == 'body':
@@ -63,16 +63,15 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += self.build_tag(tag, attrs, True)
 
   def handle_comment(self, data):
-    if self.keep_comments or data[0] == '!':
-      if data[0] == '!':
-        data = data[1:]
-      self._data_buffer += '<!--{}-->'.format(data)
+    if not self.remove_comments or data[0] == '!':
+      self._data_buffer += '<!--{}-->'.format(
+        data[1:] if data[0] == '!' else data)
 
   def handle_data(self, data):
     if self._in_pre_tag > 0:
       self._data_buffer += data
     else:
-      if not self.keep_empty:
+      if self.remove_empty_space:
         match = whitespace_re.match(data)
         if match and match.end(0) == len(data):
           return
