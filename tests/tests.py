@@ -4,11 +4,11 @@ import htmlmin
 
 MINIFY_FUNCTION_TEXTS = {
   'simple_text': (
-    '<body>  a  b</body>',
-    '<body> a b</body>'
+    '  a  b',
+    ' a b'
   ),
   'long_text': (
-    '''<body>When doing     test-driven development, or
+    '''When doing     test-driven development, or
     running automated builds that need testing before they are  deployed
 \t\t for downloading or use, it's often useful to be able to run a project's
 unit tests without actually deploying the project anywhere.\r\n\r\n\n\r\rThe
@@ -16,20 +16,21 @@ test command runs project's unit tests without actually deploying it, by
     temporarily putting the project's source on sys.path, after first running
      build_ext -i to ensure that any C extensions are built.
 
-    </body>  ''',
-    ("<body>When doing test-driven development, or running automated "
+    ''',
+    ("When doing test-driven development, or running automated "
       "builds that need testing before they are deployed for "
       "downloading or use, it's often useful to be able to run a "
       "project's unit tests without actually deploying the project "
       "anywhere. The test command runs project's unit tests without "
       "actually deploying it, by temporarily putting the project's "
       "source on sys.path, after first running build_ext -i to "
-      "ensure that any C extensions are built. </body> ")  # trailing whitespace
+      "ensure that any C extensions are built. ")
   ),
   'simple_html': (
-    ('<body> <b>  a <i pre>b  </i>'  # <b> is not closed
-     '<pre>   x </pre> <textarea>   Y  </textarea></body>'),
-    '<body> <b> a <i>b  </i><pre>   x </pre> <textarea>   Y  </textarea></body>'
+    (' <body> <b>  a <i pre>b  </i>'  # <b> is not closed
+     '<pre>   x </pre> <textarea>   Y  </textarea></body> '),
+    (' <body> <b> a <i>b  </i>'
+     '<pre>   x </pre> <textarea>   Y  </textarea></body> ')
   ),
 }
 
@@ -70,6 +71,10 @@ FEATURES_TEXTS = {
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
     '<body> <script>   X  </script> <style>   X</style> </body>',
   ),
+  'in_head': (
+    '<link /><script>   </script><title pre>   X </title>    <link />',
+    '<link /><script>   </script><title>   X </title><link />',
+  ),
 }
 
 SELF_CLOSE_TEXTS = {
@@ -100,6 +105,10 @@ SELF_CLOSE_TEXTS = {
      '<option> Y    </option></select>   </body>'),
     ('<body> <select a> <option>   X    '
      '<option> Y </option></select> </body>'),
+  ),
+  'colgroup_self_close': (
+    '<body>  <table>  <colgroup pre>   </table></body>',
+    '<body> <table> <colgroup>   </table></body>',
   ),
   'tbody_self_close': (
     ('<body>  <table>   <tbody pre>  <tr>  <td> X  </td></tr>  \n'
@@ -136,6 +145,34 @@ SELF_CLOSE_TEXTS = {
   'a_p_interaction': ( # the 'pre' functionality continues after the </a>
     '<body><a>   <p pre>  X  </a>    <p>   Y</body>',
     '<body><a> <p>  X  </a>    <p> Y</body>',
+  ),
+}
+
+SELF_OPENING_TEXTS = {
+  'html_closed_no_open': (
+    '<head></head><body>  X  </body></html>',
+    '<head></head><body> X </body></html>'
+  ),
+  'head_closed_no_open': (
+    '    </head><body>  X  </body>',
+    ' </head><body> X </body>' # TODO: we could theoretically kill that leading
+                               # space. See HTMLMinParse.handle_endtag
+  ),
+  'body_closed_no_open': (
+    '   X  </body>',
+    ' X </body>'
+  ),
+  'colgroup_self_open': (
+    '<body>  <table>  </colgroup>   </table></body>',
+    '<body> <table> </colgroup> </table></body>',
+  ),
+  'tbody_self_open': (
+    '<body>  <table>  </tbody>   </table></body>',
+    '<body> <table> </tbody> </table></body>',
+  ),
+  'p_closed_no_open': ( # this isn't valid html, but its worth accounting for
+    '<body><div pre>   X  </p>   </div><div>    Y   </p>  </div></body>',
+    '<body><div>   X  </p>   </div><div> Y </p> </div></body>',
   ),
 }
 
@@ -217,8 +254,15 @@ class TestMinifyFeatures(HTMLMinTestCase):
     text = self.__reference_texts__['dont_minify_scripts_or_styles']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=[]), text[1])
 
+  def test_in_head(self):
+    text = self.__reference_texts__['in_head']
+    self.assertEqual(htmlmin.minify(text[0], in_head=True), text[1])
+
 class TestSelfClosingTags(HTMLMinTestCase):
   __reference_texts__ = SELF_CLOSE_TEXTS
+
+class TestSelfOpeningTags(HTMLMinTestCase):
+  __reference_texts__ = SELF_OPENING_TEXTS
 
 if __name__ == '__main__':
   unittest.main()

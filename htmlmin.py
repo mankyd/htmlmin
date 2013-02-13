@@ -12,13 +12,17 @@ whitespace_re = re.compile(r'\s+')
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
 
+class HTMLMinError(Exception): pass
+class ParseError(HTMLMinError): pass
+class OpenTagNotFoundError(ParseError): pass
+
 class HTMLMinParser(HTMLParser):
   def __init__(self,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                remove_comments=False,
                remove_empty_space=False,
-               in_body=False):
+               in_head=False):
     HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
@@ -26,7 +30,7 @@ class HTMLMinParser(HTMLParser):
     self.remove_empty_space = remove_empty_space
     self._data_buffer = ''
     self._in_pre_tag = 0
-    self._body_started = in_body
+    self._in_head = in_head
 
     self._tag_stack = []
 
@@ -57,18 +61,25 @@ class HTMLMinParser(HTMLParser):
 
   def _close_tags_up_to(self, tag):
     num_pres = 0
+    i = 0
     for i, t in enumerate(self._tag_stack):
       if t[1]:
         num_pres += 1
       if t[0] == tag:
         break
+
+      # Only the html tag can close out everything. Put on the brakes if
+      # we encounter a closing tag that we didn't recognize.
+      if tag != 'html' and t[0] in ('body', 'html', 'head'):
+        raise OpenTagNotFoundError()
+
     self._tag_stack = self._tag_stack[i+1:]
 
     return num_pres
 
   def handle_starttag(self, tag, attrs):
-    if tag == 'body':
-      self._body_started = True
+    if tag == 'head':
+      self._in_head = True
 
     tag_sets = ( # a list of tags and tags that they are closed by
       (('li',), ('li',)),
@@ -80,7 +91,7 @@ class HTMLMinParser(HTMLParser):
                 'pre', 'section', 'table', 'ul')),
       (('optgroup',), ('optgroup',)),
       (('option',), ('option', 'optgroup')),
-      #colgroup?
+      (('colgroup',), ('*',)),
       (('tbody', 'thead',), ('tbody', 'tfoot')),
       (('tfoot',), ('tbody',)),
       (('tr',), ('tr',)),
@@ -88,7 +99,7 @@ class HTMLMinParser(HTMLParser):
       )
     for open_tags, closed_by_tags in tag_sets:
       in_tag = self.in_tag(*open_tags)
-      if in_tag and tag in closed_by_tags:
+      if in_tag and (tag in closed_by_tags or '*' in closed_by_tags):
         self._in_pre_tag -= self._close_tags_up_to(in_tag[0])
 
     start_pre = False
@@ -121,7 +132,17 @@ class HTMLMinParser(HTMLParser):
         if a_tag[1]:
           self._in_pre_tag -= 1
     else:
-      self._in_pre_tag -= self._close_tags_up_to(tag)
+      if tag == 'head':
+        # TODO: Did we know that we were in an head tag?! If not, we need to
+        # reminify everything to remove extra spaces.
+        self._in_head = False
+      try:
+        self._in_pre_tag -= self._close_tags_up_to(tag)
+      except OpenTagNotFoundError:
+        # Some tags don't require a start tag. Most do. Either way, we leave
+        # closing tags along since they affect output. For instance, a '</p>'
+        # results in a '<p></p>' in Chrome.
+        pass
     self._data_buffer += '</{}>'.format(cgi.escape(tag))
 
   def handle_startendtag(self, tag, attrs):
@@ -143,11 +164,11 @@ class HTMLMinParser(HTMLParser):
         if match and match.end(0) == len(data):
           return
 
-      new_data = whitespace_re.sub(' ' if self._body_started else '', data)
+      new_data = whitespace_re.sub('' if self._in_head else ' ', data)
       if not new_data:
         return
 
-      if self._in_pre_tag == 0:
+      if self._in_pre_tag == 0 and self._data_buffer:
         # If we're not in a pre block, its possible that we append two spaces
         # together, which we want to avoid. For instance, if we remove a comment
         # from between two blocks of text: a <!-- B --> c => a  c.
