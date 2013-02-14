@@ -29,7 +29,7 @@ class HTMLMinParser(HTMLParser):
     self.pre_tags = pre_tags
     self.remove_comments = remove_comments
     self.remove_empty_space = remove_empty_space
-    self._data_buffer = ''
+    self._data_buffer = u''
     self._in_pre_tag = 0
     self._in_head = in_head
     self._after_doctype = False
