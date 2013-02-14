@@ -71,9 +71,13 @@ FEATURES_TEXTS = {
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
     '<body> <script>   X  </script> <style>   X</style> </body>',
   ),
+  'remove_space_from_self_closed_tags': (
+    '<body>    <br />   <img    /></body>',
+    '<body> <br/> <img/></body>',
+  ),
   'in_head': (
     '<link /><script>   </script><title pre>   X </title>    <link />',
-    '<link /><script>   </script><title>   X </title><link />',
+    '<link/><script>   </script><title>   X </title><link/>',
   ),
 }
 
