@@ -7,6 +7,7 @@ except ImportError:
 
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 
+leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
 whitespace_re = re.compile(r'\s+')
 
 # Tag omission rules:
@@ -159,22 +160,25 @@ class HTMLMinParser(HTMLParser):
     if self._in_pre_tag > 0:
       self._data_buffer += data
     else:
-      if self.remove_empty_space:
+      if self.remove_empty_space or self._in_head:
         match = whitespace_re.match(data)
         if match and match.end(0) == len(data):
           return
 
-      new_data = whitespace_re.sub('' if self._in_head else ' ', data)
-      if not new_data:
+      # if we're in the title, remove leading and trailing whitespace
+      if self._tag_stack and self._tag_stack[0][0] == 'title':
+        data = leading_trailing_whitespace_re.sub('', data)
+      data = whitespace_re.sub(' ', data)
+      if not data:
         return
 
       if self._in_pre_tag == 0 and self._data_buffer:
         # If we're not in a pre block, its possible that we append two spaces
         # together, which we want to avoid. For instance, if we remove a comment
         # from between two blocks of text: a <!-- B --> c => a  c.
-        if new_data[0] == ' ' and self._data_buffer[-1] == ' ':
-          new_data = new_data[1:]
-      self._data_buffer += new_data
+        if data[0] == ' ' and self._data_buffer[-1] == ' ':
+          data = data[1:]
+      self._data_buffer += data
 
   def handle_entityref(self, data):
     self._data_buffer += '&{};'.format(data)
