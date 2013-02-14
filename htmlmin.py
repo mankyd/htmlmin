@@ -32,7 +32,7 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer = ''
     self._in_pre_tag = 0
     self._in_head = in_head
-
+    self._after_doctype = False
     self._tag_stack = []
 
   def _has_pre(self, attrs):
@@ -48,13 +48,14 @@ class HTMLMinParser(HTMLParser):
       if v is not None:
         result += u'="{}"'.format(cgi.escape(v))
     if close_tag:
-      return result + ' />'
+      return result + '/>'
     return result + '>'
 
   def handle_decl(self, decl):
     if whitespace_re.match(self._data_buffer):
       self._data_buffer = ''
     self._data_buffer += '<!' + decl + '>\n'
+    self._after_doctype = True
 
   def in_tag(self, *tags):
     for t in self._tag_stack:
@@ -81,6 +82,7 @@ class HTMLMinParser(HTMLParser):
     return num_pres
 
   def handle_starttag(self, tag, attrs):
+    self._after_doctype = False
     if tag == 'head':
       self._in_head = True
 
@@ -149,6 +151,7 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer += '</{}>'.format(cgi.escape(tag))
 
   def handle_startendtag(self, tag, attrs):
+    self._after_doctype = False
     if not self.keep_pre:
       attrs = [(k,v) for k,v in attrs if k != 'pre']
     self._data_buffer += self.build_tag(tag, attrs, True)
@@ -162,7 +165,7 @@ class HTMLMinParser(HTMLParser):
     if self._in_pre_tag > 0:
       self._data_buffer += data
     else:
-      if self.remove_empty_space or self._in_head:
+      if self.remove_empty_space or self._in_head or self._after_doctype:
         match = whitespace_re.match(data)
         if match and match.end(0) == len(data):
           return
@@ -170,7 +173,7 @@ class HTMLMinParser(HTMLParser):
       # if we're in the title, remove leading and trailing whitespace
       if self._tag_stack and self._tag_stack[0][0] == 'title':
         data = leading_trailing_whitespace_re.sub('', data)
-      data = whitespace_re.sub('\n', data)
+      data = whitespace_re.sub(' ', data)
       if not data:
         return
 
