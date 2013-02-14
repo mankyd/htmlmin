@@ -200,6 +200,18 @@ class HTMLMinTestCase(unittest.TestCase):
 class TestMinifyFunction(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
 
+  def test_basic_minification_qualify(self):
+    import codecs
+    inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
+    out = self.minify(inp)
+    self.assertEqual(len(inp) - len(out), 778)
+
+  def test_high_minification_qualify(self):
+    import codecs
+    inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
+    out = self.minify(inp, remove_empty_space=True, remove_comments=True)
+    self.assertEqual(len(inp) - len(out), 4015)
+
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
 
