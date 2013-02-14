@@ -35,6 +35,10 @@ test command runs project's unit tests without actually deploying it, by
 }
 
 FEATURES_TEXTS = {
+  'remove_tag_name_whitespace': (
+    '<body  >  <br   />  <textarea  >   </ textarea  ></  body>  ',
+    '<body> <br> <textarea>   </textarea></body> '
+  ),
   'remove_comments': (
     '<body> this text should <!-- X --> have comments removed</body>',
     '<body> this text should have comments removed</body>',
@@ -71,9 +75,15 @@ FEATURES_TEXTS = {
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
     '<body> <script>   X  </script> <style>   X</style> </body>',
   ),
+  'remove_close_from_tags': (
+    ('<body> <area/> <base/> <br /> <hr/> <img />   <input   /> <keygen/> '
+     '<meta  /><param/><source/><track  /><wbr />  </body>'),
+    ('<body> <area> <base> <br> <hr> <img> <input> <keygen> '
+     '<meta><param><source><track><wbr> </body>'),
+  ),
   'remove_space_from_self_closed_tags': (
-    '<body>    <br />   <img    /></body>',
-    '<body> <br/> <img/></body>',
+    '<body>    <y />   <x    /></body>',
+    '<body> <y/> <x/></body>',
   ),
   'in_head': (
     '<link /><script>   </script><title pre>   X </title>    <link />',
@@ -204,13 +214,13 @@ class TestMinifyFunction(HTMLMinTestCase):
     import codecs
     inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 778)
+    self.assertEqual(len(inp) - len(out), 796)
 
   def test_high_minification_qualify(self):
     import codecs
     inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
     out = self.minify(inp, remove_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 4015)
+    self.assertEqual(len(inp) - len(out), 4033)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS

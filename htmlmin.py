@@ -6,6 +6,8 @@ except ImportError:
   from HTMLParser import HTMLParser
 
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
+NO_CLOSE_TAGS = ('area', 'base', 'br', 'hr', 'img', 'input', 'keygen', 'meta',
+                 'param', 'source', 'track', 'wbr')
 
 leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
 whitespace_re = re.compile(r'\s+')
@@ -154,7 +156,7 @@ class HTMLMinParser(HTMLParser):
     self._after_doctype = False
     if not self.keep_pre:
       attrs = [(k,v) for k,v in attrs if k != 'pre']
-    self._data_buffer += self.build_tag(tag, attrs, True)
+    self._data_buffer += self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)
 
   def handle_comment(self, data):
     if not self.remove_comments or data[0] == '!':
