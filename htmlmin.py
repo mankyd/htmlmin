@@ -52,6 +52,8 @@ class HTMLMinParser(HTMLParser):
     return result + '>'
 
   def handle_decl(self, decl):
+    if whitespace_re.match(self._data_buffer):
+      self._data_buffer = ''
     self._data_buffer += '<!' + decl + '>\n'
 
   def in_tag(self, *tags):
@@ -168,7 +170,7 @@ class HTMLMinParser(HTMLParser):
       # if we're in the title, remove leading and trailing whitespace
       if self._tag_stack and self._tag_stack[0][0] == 'title':
         data = leading_trailing_whitespace_re.sub('', data)
-      data = whitespace_re.sub(' ', data)
+      data = whitespace_re.sub('\n', data)
       if not data:
         return
 
