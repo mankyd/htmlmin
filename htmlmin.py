@@ -11,6 +11,7 @@ NO_CLOSE_TAGS = ('area', 'base', 'br', 'hr', 'img', 'input', 'keygen', 'meta',
 
 leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
 whitespace_re = re.compile(r'\s+')
+whitespace_newline_re = re.compile(r'\s*(\r|\n)+\s*')
 
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
@@ -23,6 +24,7 @@ class HTMLMinParser(HTMLParser):
   def __init__(self,
                remove_comments=False,
                remove_empty_space=False,
+               remove_all_empty_space=False,
                in_head=False,
                keep_pre=False,
                pre_tags=PRE_TAGS,):
@@ -31,6 +33,7 @@ class HTMLMinParser(HTMLParser):
     self.pre_tags = pre_tags
     self.remove_comments = remove_comments
     self.remove_empty_space = remove_empty_space
+    self.remove_all_empty_space = remove_all_empty_space
     self._data_buffer = u''
     self._in_pre_tag = 0
     self._in_head = in_head
@@ -167,10 +170,17 @@ class HTMLMinParser(HTMLParser):
     if self._in_pre_tag > 0:
       self._data_buffer += data
     else:
-      if self.remove_empty_space or self._in_head or self._after_doctype:
+      # remove_all_empty_space matches everything. remove_empty_space only 
+      # matches if there's a newline involved.
+      if self.remove_all_empty_space or self._in_head or self._after_doctype:
         match = whitespace_re.match(data)
         if match and match.end(0) == len(data):
           return
+      elif self.remove_empty_space:
+        match = whitespace_newline_re.match(data)
+        if match and match.end(0) == len(data):
+          return
+        
 
       # if we're in the title, remove leading and trailing whitespace
       if self._tag_stack and self._tag_stack[0][0] == 'title':

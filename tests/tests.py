@@ -56,8 +56,16 @@ FEATURES_TEXTS = {
     '<body> <div id="x"> A </div> <div id="  y "> B </div> </body>',
   ),
   'remove_empty': (
-    '<body> <div id="x"  >  A </div>  <div id="  y ">  B    </div>  </body>',
-    '<body><div id="x"> A </div><div id="  y "> B </div></body>',
+    ('<body>  \n  <div id="x"  >  A </div>\r'
+     '<div id="  y ">  B    </div>\r\n  <div> C </div>  <div>D</div> </body>'),
+    ('<body><div id="x"> A </div>'
+     '<div id="  y "> B </div><div> C </div> <div>D</div> </body>'),
+  ),
+  'remove_all_empty': (
+    ('<body>  \n  <div id="x"  >  A </div>\r'
+     '<div id="  y ">  B    </div>\r\n  <div> C </div>  <div>D</div> </body>'),
+    ('<body><div id="x"> A </div>'
+     '<div id="  y "> B </div><div> C </div><div>D</div></body>'),
   ),
   'dont_minify_div': (
     '<body>  <div>   X  </div>   </body>',
@@ -210,16 +218,16 @@ class HTMLMinTestCase(unittest.TestCase):
 class TestMinifyFunction(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
 
-  def test_basic_minification_qualify(self):
+  def test_basic_minification_quality(self):
     import codecs
     inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
     out = self.minify(inp)
     self.assertEqual(len(inp) - len(out), 796)
 
-  def test_high_minification_qualify(self):
+  def test_high_minification_quality(self):
     import codecs
     inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
-    out = self.minify(inp, remove_empty_space=True, remove_comments=True)
+    out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
     self.assertEqual(len(inp) - len(out), 4033)
 
 class TestMinifierObject(HTMLMinTestCase):
@@ -263,6 +271,11 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_remove_empty(self):
     text = self.__reference_texts__['remove_empty']
     self.assertEqual(htmlmin.minify(text[0], remove_empty_space=True), text[1])
+
+  def test_remove_all_empty(self):
+    text = self.__reference_texts__['remove_all_empty']
+    self.assertEqual(htmlmin.minify(text[0], remove_all_empty_space=True), 
+                     text[1])
 
   def test_dont_minify_div(self):
     text = self.__reference_texts__['dont_minify_div']

@@ -5,48 +5,89 @@ import codecs
 
 import htmlmin
 
-parser = argparse.ArgumentParser(description='Minify HTML')
+parser = argparse.ArgumentParser(
+  description='Minify HTML',
+  formatter_class=argparse.RawTextHelpFormatter
+  )
+
 parser.add_argument('input_file',
   metavar='INPUT',
   help='File path to html file to minify.',
   )
+
 parser.add_argument('output_file',
   nargs='?',
   metavar='OUTPUT',
   help="File path to output to. Defaults to stdout.",
   )
+
 parser.add_argument('-c', '--remove-comments',
-  help=("When set, comments will be removed. They can be kept on an "
-        "individual basis by starting them with a '!': <!--! comment -->. The "
-        "'!' will be removed from the final output. If you want a '!' as the "
-        "leading character of your comment, put two of them: "
-        "<!--!! comment -->."),
+  help=(
+'''When set, comments will be removed. They can be kept on an individual basis
+by starting them with a '!': <!--! comment -->. The '!' will be removed from
+the final output. If you want a '!' as the leading character of your comment,
+put two of them: <!--!! comment -->.
+
+'''),
   action='store_true')
+
 parser.add_argument('-s', '--remove-empty-space',
-  help=("When set, this removed empty space betwen tags. WARNING: this can "
-        "cause unintended consequences. For instance, '<i>X</i> <i>Y</i>' will "
-        "become '<i>X</i><i>Y</i>'. Putting whitespace along with other text "
-        "will avoid this problem. Only use if you are confident."),
+  help=(
+'''When set, this removes empty space betwen tags in certain cases. 
+Specifically, it will remove empty space if and only if there a newline
+character occurs within the space. Thus, code like 
+'<span>x</span> <span>y</span>' will be left alone, but code such as
+'   ...
+  </head>
+  <body>
+    ...'
+will become '...</head><body>...'. Note that this CAN break your 
+html if you spread two inline tags over two lines. Use with caution.
+
+'''),
   action='store_true')
+
+parser.add_argument('--remove-all-empty-space',
+  help=(
+'''When set, this removes ALL empty space betwen tags. WARNING: this can and
+likely will cause unintended consequences. For instance, '<i>X</i> <i>Y</i>'
+will become '<i>X</i><i>Y</i>'. Putting whitespace along with other text will
+avoid this problem. Only use if you are confident in the result. Whitespace is
+not removed from inside of tags, thus '<span> </span>' will be left alone.
+
+'''),
+  action='store_true')
+
 parser.add_argument('-H', '--in-head',
-  help=("If you are parsing only a fragment of HTML, and the fragment occurs "
-        "in the head of the document, setting this will remove some extra "
-        "whitespace."),
+  help=(
+'''If you are parsing only a fragment of HTML, and the fragment occurs in the
+head of the document, setting this will remove some extra whitespace.
+
+'''),
   action='store_true')
+
 parser.add_argument('-k', '--keep-pre-attr',
-  help=("HTMLMin supports the propietary attribute 'pre' that can be added "
-        "to elements to prevent minification. This attribute is removed by "
-        "default. Set this flag to keep the 'pre' attributes in place."),
+  help=(
+'''HTMLMin supports the propietary attribute 'pre' that can be added to elements
+to prevent minification. This attribute is removed by default. Set this flag to
+keep the 'pre' attributes in place.
+
+'''),
   action='store_true')
+
 parser.add_argument('-p', '--pre-tags',
   metavar='TAG',
-  help=("By default, the contents of 'pre', and 'textarea' tags are left "
-        "unminified. You can specify different tags using the --pre-tags "
-        "option. 'script' and 'style' tags are always left unmininfied."),
+  help=(
+'''By default, the contents of 'pre', and 'textarea' tags are left unminified.
+You can specify different tags using the --pre-tags option. 'script' and 'style'
+tags are always left unmininfied.
+
+'''),
   nargs='*',
   default=['pre', 'textarea'])
 parser.add_argument('-e', '--encoding',
-  help=("Encoding to read and write with. Default 'utf-8'."),
+
+  help=("Encoding to read and write with. Default 'utf-8'.\n\n"),
   default='utf-8',
   )
 
