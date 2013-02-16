@@ -28,7 +28,7 @@ an easily configurable set options. It cam turn this::
 
 Into this::
 
-  <html><head><title>Hello, World!</title><body><p> How <em>you</em< doing? </p></body></html>
+  <html><head><title>Hello, World!</title><body><p> How <em>you</em> doing? </p></body></html>
 
 When we say that htmlmin has 'seatbelts', what we mean is that it comes with
 features that you can use to safely minify beyond the defaults, but you have to
