@@ -32,6 +32,10 @@ test command runs project's unit tests without actually deploying it, by
     (' <body> <b> a <i>b  </i>'
      '<pre>   x </pre> <textarea>   Y  </textarea></body> ')
   ),
+  'with_doctype': (
+    '\n\n<!DOCTYPE html>\n\n<body>   X   Y   </body>',
+    '<!DOCTYPE html>\n<body> X Y </body>'
+  ),
 }
 
 FEATURES_TEXTS = {

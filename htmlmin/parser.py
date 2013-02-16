@@ -35,7 +35,7 @@ class HTMLMinParser(HTMLParser):
     self.remove_empty_space = remove_empty_space
     self.remove_all_empty_space = remove_all_empty_space
     self.pre_attr = pre_attr
-    self._data_buffer = u''
+    self._data_buffer = []
     self._in_pre_tag = 0
     self._in_head = False
     self._after_doctype = False
@@ -58,9 +58,10 @@ class HTMLMinParser(HTMLParser):
     return result + '>'
 
   def handle_decl(self, decl):
-    if whitespace_re.match(self._data_buffer):
-      self._data_buffer = ''
-    self._data_buffer += '<!' + decl + '>\n'
+    if (len(self._data_buffer) == 1 and 
+        whitespace_re.match(self._data_buffer[0])):
+      self._data_buffer = []
+    self._data_buffer.append('<!' + decl + '>\n')
     self._after_doctype = True
 
   def in_tag(self, *tags):
@@ -126,7 +127,7 @@ class HTMLMinParser(HTMLParser):
     if not self.keep_pre:
       attrs = [(k,v) for k,v in attrs if k != self.pre_attr]
 
-    self._data_buffer += self.build_tag(tag, attrs, False)
+    self._data_buffer.append(self.build_tag(tag, attrs, False))
 
   def handle_endtag(self, tag):
     # According to the spec, <p> tags don't get closed when a parent a
@@ -154,22 +155,22 @@ class HTMLMinParser(HTMLParser):
         # closing tags along since they affect output. For instance, a '</p>'
         # results in a '<p></p>' in Chrome.
         pass
-    self._data_buffer += '</{}>'.format(cgi.escape(tag))
+    self._data_buffer.append('</{}>'.format(cgi.escape(tag)))
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False
     if not self.keep_pre:
       attrs = [(k,v) for k,v in attrs if k != 'pre']
-    self._data_buffer += self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)
+    self._data_buffer.append(self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS))
 
   def handle_comment(self, data):
     if not self.remove_comments or data[0] == '!':
-      self._data_buffer += '<!--{}-->'.format(
-        data[1:] if data[0] == '!' else data)
+      self._data_buffer.append('<!--{}-->'.format(
+          data[1:] if data[0] == '!' else data))
 
   def handle_data(self, data):
     if self._in_pre_tag > 0:
-      self._data_buffer += data
+      self._data_buffer.append(data)
     else:
       # remove_all_empty_space matches everything. remove_empty_space only 
       # matches if there's a newline involved.
@@ -194,26 +195,26 @@ class HTMLMinParser(HTMLParser):
         # If we're not in a pre block, its possible that we append two spaces
         # together, which we want to avoid. For instance, if we remove a comment
         # from between two blocks of text: a <!-- B --> c => a  c.
-        if data[0] == ' ' and self._data_buffer[-1] == ' ':
+        if data[0] == ' ' and self._data_buffer[-1][-1] == ' ':
           data = data[1:]
-      self._data_buffer += data
+      self._data_buffer.append(data)
 
   def handle_entityref(self, data):
-    self._data_buffer += '&{};'.format(data)
+    self._data_buffer.append('&{};'.format(data))
 
   def handle_charref(self, data):
-    self._data_buffer += '&#{};'.format(data)
+    self._data_buffer.append('&#{};'.format(data))
 
   def handle_pi(self, data):
-    self._data_buffer += '<?' + data + '>'
+    self._data_buffer.append('<?' + data + '>')
 
   def unknown_decl(self, data):
-    self._data_buffer += '<![' + data + ']>'
+    self._data_buffer.append('<![' + data + ']>')
 
   def reset(self):
-    self._data_buffer = ''
+    self._data_buffer = []
     HTMLParser.reset(self)
 
   @property
   def result(self):
-    return self._data_buffer
+    return ''.join(self._data_buffer)
