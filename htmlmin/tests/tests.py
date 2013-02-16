@@ -220,13 +220,13 @@ class TestMinifyFunction(HTMLMinTestCase):
 
   def test_basic_minification_quality(self):
     import codecs
-    inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
+    inp = codecs.open('htmlmin/tests/large_test.html', encoding='utf-8').read()
     out = self.minify(inp)
     self.assertEqual(len(inp) - len(out), 796)
 
   def test_high_minification_quality(self):
     import codecs
-    inp = codecs.open('tests/large_test.html', encoding='utf-8').read()
+    inp = codecs.open('htmlmin/tests/large_test.html', encoding='utf-8').read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
     self.assertEqual(len(inp) - len(out), 4033)
 
