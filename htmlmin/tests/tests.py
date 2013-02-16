@@ -1,6 +1,7 @@
 import unittest
 
 import htmlmin
+from htmlmin.decorator import htmlmin as htmlmindecorator
 
 MINIFY_FUNCTION_TEXTS = {
   'simple_text': (
@@ -307,6 +308,21 @@ class TestSelfClosingTags(HTMLMinTestCase):
 class TestSelfOpeningTags(HTMLMinTestCase):
   __reference_texts__ = SELF_OPENING_TEXTS
 
+class TestDecorator(HTMLMinTestCase):
+  def test_direct_decorator(self):
+    @htmlmindecorator
+    def directly_decorated():
+      return '   X   Y   '
+
+    self.assertEqual(' X Y ', directly_decorated())
+
+  def test_options_decorator(self):
+    @htmlmindecorator(remove_comments=True)
+    def directly_decorated():
+      return '   X <!-- Removed -->  Y   '
+
+    self.assertEqual(' X Y ', directly_decorated())
+
 def suite():
     minify_function_suite = unittest.TestLoader().\
         loadTestsFromTestCase(TestMinifyFunction)
@@ -318,12 +334,15 @@ def suite():
         loadTestsFromTestCase(TestSelfClosingTags)
     self_opening_tags_suite = unittest.TestLoader().\
         loadTestsFromTestCase(TestSelfOpeningTags)
+    decorator_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestDecorator)
     return unittest.TestSuite([
         minify_function_suite,
         minifier_object_suite,
         minify_features_suite,
         self_closing_tags_suite,
         self_opening_tags_suite,
+        decorator_suite,
         ])
 
 if __name__ == '__main__':
