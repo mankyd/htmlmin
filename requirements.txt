@@ -1,2 +1,1 @@
-distutils2
 Sphinx
