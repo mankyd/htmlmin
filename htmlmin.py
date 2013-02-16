@@ -217,30 +217,74 @@ class HTMLMinParser(HTMLParser):
   def result(self):
     return self._data_buffer
 
-def minify(input, **kwargs):
+def minify(input,
+           remove_comments=False,
+           remove_empty_space=False,
+           remove_all_empty_space=False,
+           in_head=False,
+           keep_pre=False,
+           pre_tags=PRE_TAGS,):
+  """Minifies HTML
+
+  """
   minifier = HTMLMinParser(**kwargs)
   minifier.feed(input)
   minifier.close()
   return minifier.result
 
 class Minifier(object):
-  def __init__(self):
-    self._parser = HTMLMinParser()
+  """An object that supports HTML Minification.
+
+  Options are passed into this class at initialization time and are then 
+  persisted across each use of the instance. If you are going to be minifying
+  multiple peices of HTML, this will be more efficient than using
+  :ref:`minify <htmlmin_minify>`.
+  """
+
+  def __init__(self,
+               remove_comments=False,
+               remove_empty_space=False,
+               remove_all_empty_space=False,
+               in_head=False,
+               keep_pre=False,
+               pre_tags=PRE_TAGS,):
+    """Initialize the Minifier.
+
+    """
+    self._parser = HTMLMinParser(**kwargs)
 
   def input(self, input):
+    """Feed more HTML into the input stream
+    """
     self._parser.feed(input)
 
   @property
   def output(self):
+    """Retrieve the minified output generated thus far.
+    """
     return self._parser.result
 
   def finalize(self):
+    """Finishes current input HTML and returns mininified result.
+
+    This method flushes any remaining input HTML and returns the minified 
+    result. It resets the state of the internal parser in the process so that
+    new HTML can be minified. Be sure to call this method before you reuse
+    the ``Minifier`` instance.
+    """
     self._parser.close()
     result = self._parser.result
     self._parser.reset()
     return result
 
   def minify(self, input):
+    """Runs HTML through the minifier in one pass.
+
+    This is the simplest way to use an existing ``Minifier`` instance. This
+    method takes in HTML and minfies it, returning the result. Note that this
+    method resets the internal state of  the parser before it does any work. If
+    there is pending HTML in the buffers, it will be lost.
+    """
     self._parser.reset()
     self.input(input)
     return self.finalize()
