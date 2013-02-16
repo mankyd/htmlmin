@@ -2,6 +2,7 @@ import unittest
 
 import htmlmin
 from htmlmin.decorator import htmlmin as htmlmindecorator
+from htmlmin.middleware import HTMLMinMiddleware
 
 MINIFY_FUNCTION_TEXTS = {
   'simple_text': (
@@ -323,6 +324,88 @@ class TestDecorator(HTMLMinTestCase):
 
     self.assertEqual(' X Y ', directly_decorated())
 
+class TestMiddleware(HTMLMinTestCase):
+  def setUp(self):
+    HTMLMinTestCase.setUp(self)
+    def wsgi_app(environ, start_response):
+      start_response(environ['status'], environ['headers'])
+      yield environ['content']
+
+    self.wsgi_app = wsgi_app
+
+  def call_app(self, app, status, headers, content):
+    response_status = []  # these need to be mutable so that they can be changed
+    response_headers = [] # within our inner function.
+    def start_response(status, headers, exc_info=None):
+      response_status.append(status)
+      response_headers.append(headers)
+    response_body = ''.join(app({'status': status,
+                                 'content': content,
+                                 'headers': headers}, 
+                                start_response))
+    return response_status[0], response_headers[0], response_body
+
+  def test_middlware(self):
+    app = HTMLMinMiddleware(self.wsgi_app)
+    status, headers, body = self.call_app(
+      app, '200 OK', (('Content-Type', 'text/html'),), 
+      '    X    Y   ')
+    self.assertEqual(body, ' X Y ')
+
+  def test_middlware_minifier_options(self):
+    app = HTMLMinMiddleware(self.wsgi_app, remove_comments=True)
+    status, headers, body = self.call_app(
+      app, '200 OK', (('Content-Type', 'text/html'),), 
+      '    X    Y   <!-- Z -->')
+    self.assertEqual(body, ' X Y ')
+
+  def test_middlware_off_by_default(self):
+    app = HTMLMinMiddleware(self.wsgi_app, by_default=False)
+    status, headers, body = self.call_app(
+      app, '200 OK', (('Content-Type', 'text/html'),), 
+      '    X    Y   ')
+    self.assertEqual(body, '    X    Y   ')
+
+  def test_middlware_on_by_header(self):
+    app = HTMLMinMiddleware(self.wsgi_app, by_default=False)
+    status, headers, body = self.call_app(
+      app, '200 OK', (
+        ('Content-Type', 'text/html'),
+        ('HTML-Min-Enable', 'True'),
+        ), 
+      '    X    Y   ')
+    self.assertEqual(body, ' X Y ')
+
+  def test_middlware_off_by_header(self):
+    app = HTMLMinMiddleware(self.wsgi_app)
+    status, headers, body = self.call_app(
+      app, '200 OK', (
+        ('Content-Type', 'text/html'),
+        ('HTML-Min-Enable', 'False'),
+        ), 
+      '    X    Y   ')
+    self.assertEqual(body, '    X    Y   ')
+
+  def test_middlware_remove_header(self):
+    app = HTMLMinMiddleware(self.wsgi_app)
+    status, headers, body = self.call_app(
+      app, '200 OK', (
+        ('Content-Type', 'text/html'),
+        ('HTML-Min-Enable', 'False'),
+        ), 
+      '    X    Y   ')
+    self.assertFalse(any((h == 'HTML-Min-Enable' for h, v in headers)))
+
+  def test_middlware_keep_header(self):
+    app = HTMLMinMiddleware(self.wsgi_app, keep_header=True)
+    status, headers, body = self.call_app(
+      app, '200 OK', [
+        ('Content-Type', 'text/html'),
+        ('HTML-Min-Enable', 'False'),
+        ], 
+      '    X    Y   ')
+    self.assertTrue(any((h == 'HTML-Min-Enable' for h, v in headers)))
+
 def suite():
     minify_function_suite = unittest.TestLoader().\
         loadTestsFromTestCase(TestMinifyFunction)
@@ -336,6 +419,8 @@ def suite():
         loadTestsFromTestCase(TestSelfOpeningTags)
     decorator_suite = unittest.TestLoader().\
         loadTestsFromTestCase(TestDecorator)
+    middleware_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestMiddleware)
     return unittest.TestSuite([
         minify_function_suite,
         minifier_object_suite,
@@ -343,6 +428,7 @@ def suite():
         self_closing_tags_suite,
         self_opening_tags_suite,
         decorator_suite,
+        middleware_suite,
         ])
 
 if __name__ == '__main__':
