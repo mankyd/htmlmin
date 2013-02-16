@@ -32,8 +32,8 @@ Into this::
   <html><head><title>Hello, World!</title><body> <p> How ya doin'? </p> <p>Well, I hope.</p> </body> </html>
 
 When we say that htmlmin has 'seatbelts', what we mean is that it comes with
-features that you can use to safely minify even more, but you have to put
-them in yourself. For instance, by default, htmlmin will never minimize the 
+features that you can use to safely minify beyond the defaults, but you have to
+put them in yourself. For instance, by default, htmlmin will never minimize the
 content between ``<pre>``, ``<textarea>``, ``<script>``, and ``<style>`` tags.
 You can also  explicitly tell it to not minify additional tags either globally 
 name or by adding the custom ``pre`` attribute to a tag in your HTML. htmlmin 
