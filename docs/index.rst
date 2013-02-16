@@ -15,21 +15,20 @@ An HTML Minifier with Seatbelts
 
 
 htmlin is an HTML minifier that just works. It comes with safe defaults and
-an easily configurable set options. It turns this::
+an easily configurable set options. It cam turn this::
 
   <html>
     <head>
       <title>  Hello, Word!  </title>
     </head>
     <body>
-      <p> How ya doin'?  </p>
-      <p>Well, I    hope.</p>
+      <p> How are <em>you</em> doing?  </p>
     </body>
   </html>
 
 Into this::
 
-  <html><head><title>Hello, World!</title><body> <p> How ya doin'? </p> <p>Well, I hope.</p> </body> </html>
+  <html><head><title>Hello, World!</title><body><p> How <em>you</em< doing? </p></body></html>
 
 When we say that htmlmin has 'seatbelts', what we mean is that it comes with
 features that you can use to safely minify beyond the defaults, but you have to
