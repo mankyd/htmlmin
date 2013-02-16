@@ -47,9 +47,13 @@ FEATURES_TEXTS = {
     '<body> this text should <!--! not --> have comments removed</body>',
     '<body> this text should <!-- not --> have comments removed</body>',
   ),
-  'keep_pre': (
+  'keep_pre_attribute': (
     '<body>the <strong pre   style="">pre</strong> should stay  </body>',
     '<body>the <strong pre style="">pre</strong> should stay </body>',
+  ),
+  'custom_pre_attribute': (
+    '<body>the <strong pre  >   X  </strong><span custom>  Y  </span></body>',
+    '<body>the <strong pre> X </strong><span>  Y  </span></body>',
   ),
   'keep_empty': (
     '<body> <div id="x"  >  A </div>  <div id="  y ">  B    </div>  </body>',
@@ -256,9 +260,13 @@ class TestMinifyFeatures(HTMLMinTestCase):
     text = self.__reference_texts__['keep_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
-  def test_keep_pre(self):
-    text = self.__reference_texts__['keep_pre']
+  def test_keep_pre_attribute(self):
+    text = self.__reference_texts__['keep_pre_attribute']
     self.assertEqual(htmlmin.minify(text[0], keep_pre=True), text[1])
+
+  def test_custom_pre_attribute(self):
+    text = self.__reference_texts__['custom_pre_attribute']
+    self.assertEqual(htmlmin.minify(text[0], pre_attr='custom'), text[1])
 
   def test_keep_empty(self):
     text = self.__reference_texts__['keep_empty']

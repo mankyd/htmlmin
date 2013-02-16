@@ -26,13 +26,15 @@ class HTMLMinParser(HTMLParser):
                remove_empty_space=False,
                remove_all_empty_space=False,
                keep_pre=False,
-               pre_tags=PRE_TAGS,):
+               pre_tags=PRE_TAGS,
+               pre_attr='pre'):
     HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
     self.remove_comments = remove_comments
     self.remove_empty_space = remove_empty_space
     self.remove_all_empty_space = remove_all_empty_space
+    self.pre_attr = pre_attr
     self._data_buffer = u''
     self._in_pre_tag = 0
     self._in_head = False
@@ -41,7 +43,7 @@ class HTMLMinParser(HTMLParser):
 
   def _has_pre(self, attrs):
     for k,v in attrs:
-      if k == 'pre':
+      if k == self.pre_attr:
         return True
     return False
 
@@ -122,7 +124,7 @@ class HTMLMinParser(HTMLParser):
     self._tag_stack.insert(0, (tag, start_pre))
 
     if not self.keep_pre:
-      attrs = [(k,v) for k,v in attrs if k != 'pre']
+      attrs = [(k,v) for k,v in attrs if k != self.pre_attr]
 
     self._data_buffer += self.build_tag(tag, attrs, False)
 
@@ -221,7 +223,8 @@ def minify(input,
            remove_empty_space=False,
            remove_all_empty_space=False,
            keep_pre=False,
-           pre_tags=PRE_TAGS,):
+           pre_tags=PRE_TAGS,
+           pre_attr='pre'):
   """Minifies HTML in one shot.
 
   :param input: A string containing the HTML to be minified.
@@ -250,9 +253,12 @@ def minify(input,
     this attribute as it finds it. Setting this value to ``True`` tells htmlmin
     to leave the attribute in the output.
   :param pre_tags: A list of tag names that should never be minified. You are
-    free to change this list if you want, but you will probably want to include
-    `pre` and `textarea` if you make any changes to the list.
-
+    free to change this list as you see fit, but you will probably want to
+    include ``pre`` and ``textarea`` if you make any changes to the list. Note
+    that ``<script>`` and ``<style>`` tags are never minimized.
+  :param pre_attr: Specifies the attribute that, when found in an HTML tag, 
+    indicates that the content of the tag should not be minified. Defaults to
+    ``pre``.
   :return: A string containing the minified HTML.
 
   If you are going to be minifying multiple HTML documents, each with the same
@@ -264,7 +270,7 @@ def minify(input,
       remove_all_empty_space=remove_all_empty_space,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
-      )
+      pre_attr=pre_attr)
   minifier.feed(input)
   minifier.close()
   return minifier.result
@@ -285,7 +291,8 @@ class Minifier(object):
                remove_empty_space=False,
                remove_all_empty_space=False,
                keep_pre=False,
-               pre_tags=PRE_TAGS,):
+               pre_tags=PRE_TAGS,
+               pre_attr='pre'):
     """Initialize the Minifier.
 
     See :class:`htmlmin.minify` for an explanation of options.
@@ -296,7 +303,7 @@ class Minifier(object):
       remove_all_empty_space=remove_all_empty_space,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
-      )
+      pre_attr=pre_attr)
 
   def minify(self, *input):
     """Runs HTML through the minifier in one pass.
