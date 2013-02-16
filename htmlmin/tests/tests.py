@@ -303,5 +303,24 @@ class TestSelfClosingTags(HTMLMinTestCase):
 class TestSelfOpeningTags(HTMLMinTestCase):
   __reference_texts__ = SELF_OPENING_TEXTS
 
+def suite():
+    minify_function_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestMinifyFunction)
+    minifier_object_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestMinifierObject)
+    minify_features_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestMinifyFeatures)
+    self_closing_tags_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestSelfClosingTags)
+    self_opening_tags_suite = unittest.TestLoader().\
+        loadTestsFromTestCase(TestSelfOpeningTags)
+    return unittest.TestSuite([
+        minify_function_suite,
+        minifier_object_suite,
+        minify_features_suite,
+        self_closing_tags_suite,
+        self_opening_tags_suite,
+        ])
+
 if __name__ == '__main__':
   unittest.main()

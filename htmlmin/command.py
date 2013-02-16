@@ -3,7 +3,8 @@
 import argparse
 import codecs
 
-import htmlmin
+#import htmlmin
+from . import minify
 
 parser = argparse.ArgumentParser(
   description='Minify HTML',
@@ -91,10 +92,10 @@ parser.add_argument('-e', '--encoding',
   default='utf-8',
   )
 
-if __name__ == '__main__':
+def main():
   args = parser.parse_args()
   inp = codecs.open(args.input_file, encoding=args.encoding).read()
-  result = htmlmin.minify(inp,
+  result = minify(inp,
     remove_comments=args.remove_comments,
     remove_empty_space=args.remove_empty_space,
     in_head=args.in_head,
@@ -105,3 +106,7 @@ if __name__ == '__main__':
     codecs.open(args.output_file, 'w', encoding=args.encoding).write(result)
   else:
     print result
+
+if __name__ == '__main__':
+  main()
+
