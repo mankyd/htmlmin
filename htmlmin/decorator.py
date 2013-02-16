@@ -1,7 +1,22 @@
 from .main import Minifier
 
 def htmlmin(*args, **kwargs):
+  """Minifies HTML that is returned by a function.
 
+  A simple decorator that minifies the HTML output of any function that it
+  decorates. It supports all the same options that :class:`htmlmin.minify` has.
+  With no options, it uses ``minify``'s default settings::
+
+      @htmlmin
+      def foobar():
+         return '   minify me!   '
+
+  or::
+
+      @htmlmin(remove_comments=True)
+      def foobar():
+         return '   minify me!  <!-- and remove me! -->'
+  """
   def _decorator(fn):
     minify = Minifier(**kwargs).minify
     def wrapper(*a, **kw):

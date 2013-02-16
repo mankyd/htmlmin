@@ -371,7 +371,7 @@ class TestMiddleware(HTMLMinTestCase):
     status, headers, body = self.call_app(
       app, '200 OK', (
         ('Content-Type', 'text/html'),
-        ('HTML-Min-Enable', 'True'),
+        ('X-HTML-Min-Enable', 'True'),
         ), 
       '    X    Y   ')
     self.assertEqual(body, ' X Y ')
@@ -381,7 +381,7 @@ class TestMiddleware(HTMLMinTestCase):
     status, headers, body = self.call_app(
       app, '200 OK', (
         ('Content-Type', 'text/html'),
-        ('HTML-Min-Enable', 'False'),
+        ('X-HTML-Min-Enable', 'False'),
         ), 
       '    X    Y   ')
     self.assertEqual(body, '    X    Y   ')
@@ -391,20 +391,20 @@ class TestMiddleware(HTMLMinTestCase):
     status, headers, body = self.call_app(
       app, '200 OK', (
         ('Content-Type', 'text/html'),
-        ('HTML-Min-Enable', 'False'),
+        ('X-HTML-Min-Enable', 'False'),
         ), 
       '    X    Y   ')
-    self.assertFalse(any((h == 'HTML-Min-Enable' for h, v in headers)))
+    self.assertFalse(any((h == 'X-HTML-Min-Enable' for h, v in headers)))
 
   def test_middlware_keep_header(self):
     app = HTMLMinMiddleware(self.wsgi_app, keep_header=True)
     status, headers, body = self.call_app(
       app, '200 OK', [
         ('Content-Type', 'text/html'),
-        ('HTML-Min-Enable', 'False'),
+        ('X-HTML-Min-Enable', 'False'),
         ], 
       '    X    Y   ')
-    self.assertTrue(any((h == 'HTML-Min-Enable' for h, v in headers)))
+    self.assertTrue(any((h == 'X-HTML-Min-Enable' for h, v in headers)))
 
 def suite():
     minify_function_suite = unittest.TestLoader().\

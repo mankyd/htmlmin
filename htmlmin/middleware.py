@@ -1,6 +1,25 @@
 from .main import Minifier
 
 class HTMLMinMiddleware(object):
+  """WSGI Middleware that minifies html on the way out.
+
+  :param by_default: Specifies if minification should be turned on or off by
+    default. Defaults to ``True``.
+  :param keep_header: The middleware recognizes one custom HTTP header that 
+    can be used to turn minification on or off on a per-request basis:
+    ``X-HTML-Min-Enable``. Setting the header to ``true`` will turn minfication
+    on; anything else will turn minification off. If ``by_default`` is set to 
+    ``False``, this header is how you would turn minification back on. The
+    middleware, by default, removes the header from the output. Setting this
+    to ``True`` leaves the header in tact.
+  :param debug: A quick setting to turn all minification off. The middleware
+    is effectively bypassed.
+
+  This simple middleware minifies any HTML content that passes through it. Any
+  additional keyword arguments beyond the three settings the middleware has are
+  passed on to the internal minifier. The documentation for the options can
+  be found under :class:`htmlmin.minify`.
+  """
   def __init__(self, app, by_default=True, keep_header=False, 
                debug=False, **kwargs):
     self.app = app
@@ -19,7 +38,7 @@ class HTMLMinMiddleware(object):
       should_minify.append(self.should_minify(headers))
       if not self.keep_header:
         headers = [(header, value) for header, value in 
-                   headers if header != 'HTML-Min-Enable']
+                   headers if header != 'X-HTML-Min-Enable']
       start_response(status, headers, exc_info)
 
     html = [i for i in self.app(environ, minified_start_response)]
@@ -36,7 +55,7 @@ class HTMLMinMiddleware(object):
         if flag_header is not None:
           break
 
-      if flag_header is None and header == 'HTML-Min-Enable':
+      if flag_header is None and header == 'X-HTML-Min-Enable':
         flag_header = (value.lower() == 'true')
         if is_html:
           break
