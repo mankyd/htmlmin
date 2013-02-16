@@ -1,6 +1,6 @@
 Quickstart
 ==========
-For single invocations, there is the :ref:`htmlmin.minify <htmlmin_minify>`
+For single invocations, there is the :class:`htmlmin.minify`
 method. It takes input html as a string for its first argument and returns
 minified html. It accepts multiple different options that allow you to tune the
 amount of minification being done with the defaults being the safest available
@@ -30,9 +30,9 @@ tag alone and will remove the ``pre`` attribute before it is output::
   >>> htmlmin.minify(input_html)
   u'<span> minified </span><span>   not minified   </span>'
 
-The :ref:`minify <htmlmin_minify>` function works well for one off
+The :class:`minify <htmlmin.minify>` function works well for one off
 minifications. However, if you are going to minify several pieces of HTML, the
-:ref:`Minifier <htmlmin_minifier>` class is provided. It works similarly, but
+:class:`Minifier <htmlmin.Minifier>` class is provided. It works similarly, but
 allows for persistence of options between invocations and recycles the internal
 data structures used for minification.
 

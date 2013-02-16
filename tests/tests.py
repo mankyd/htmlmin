@@ -93,10 +93,6 @@ FEATURES_TEXTS = {
     '<body>    <y />   <x    /></body>',
     '<body> <y/> <x/></body>',
   ),
-  'in_head': (
-    '<link /><script>   </script><title pre>   X </title>    <link />',
-    '<link/><script>   </script><title>   X </title><link/>',
-  ),
 }
 
 SELF_CLOSE_TEXTS = {
@@ -292,10 +288,6 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_dont_minify_scripts_or_styles(self):
     text = self.__reference_texts__['dont_minify_scripts_or_styles']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=[]), text[1])
-
-  def test_in_head(self):
-    text = self.__reference_texts__['in_head']
-    self.assertEqual(htmlmin.minify(text[0], in_head=True), text[1])
 
 class TestSelfClosingTags(HTMLMinTestCase):
   __reference_texts__ = SELF_CLOSE_TEXTS
