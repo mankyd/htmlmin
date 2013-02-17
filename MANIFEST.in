@@ -1,0 +1,2 @@
+include *.md
+prune htmlmin/tests
