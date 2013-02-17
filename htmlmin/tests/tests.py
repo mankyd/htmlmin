@@ -212,13 +212,13 @@ class HTMLMinTestMeta(type):
         self.assertEqual(self.minify(text[0]), text[1])
       return inner_test
 
-    for k, v in dct.get('__reference_texts__',{}).iteritems():
+    for k, v in dct.get('__reference_texts__',{}).items():
       if 'test_'+k not in dct:
         dct['test_'+k] = make_test(v)
-    return type.__new__(cls, name, bases, dct)
+    return type.__new__(cls, str(name), bases, dct)
 
-class HTMLMinTestCase(unittest.TestCase):
-  __metaclass__ = HTMLMinTestMeta
+class HTMLMinTestCase(
+  HTMLMinTestMeta('HTMLMinTestCase', (unittest.TestCase, ), {})):
   def setUp(self):
     self.minify = htmlmin.minify
 
