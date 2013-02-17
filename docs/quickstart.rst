@@ -92,6 +92,11 @@ any time by running `htmlmin -h`::
                           to prevent minification. This attribute is removed by default. Set this flag to
                           keep the 'pre' attributes in place.
 
+    -a PRE_ATTR, --pre-attr PRE_ATTR
+                          The attribute htmlmin looks for to find blocks of HTML that it should not 
+                          minify. This attribute will be removed from the HTML unless '-k' is
+                          specified. Defaults to 'pre'.
+
     -p [TAG [TAG ...]], --pre-tags [TAG [TAG ...]]
                           By default, the contents of 'pre', and 'textarea' tags are left unminified.
                           You can specify different tags using the --pre-tags option. 'script' and 'style'

@@ -78,6 +78,16 @@ keep the 'pre' attributes in place.
 '''),
   action='store_true')
 
+parser.add_argument('-a', '--pre-attr',
+  help=(
+'''The attribute htmlmin looks for to find blocks of HTML that it should not 
+minify. This attribute will be removed from the HTML unless '-k' is
+specified. Defaults to 'pre'.
+
+'''),
+  default='pre')
+
+
 parser.add_argument('-p', '--pre-tags',
   metavar='TAG',
   help=(
@@ -101,6 +111,7 @@ def main():
     remove_empty_space=args.remove_empty_space,
     pre_tags=args.pre_tags,
     keep_pre=args.keep_pre_attr,
+    pre_attr=args.pre_attr,
     )
   if args.input_file:
     inp = codecs.open(args.input_file, encoding=args.encoding)
