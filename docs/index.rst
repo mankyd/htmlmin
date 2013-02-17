@@ -41,6 +41,21 @@ will remove the ``pre`` attributes as it parses your HTML automatically.
 It also includes a command-line tool for easy invocation and integration with
 existing workflows.
 
+Install
+=======
+
+To install via pip::
+
+  pip install htmlmin 
+
+Source Code
+===========
+
+Source code is availble on github at
+`https://github.com/mankyd/htmlmin <https://github.com/mankyd/htmlmin>`_::
+
+  git clone git://github.com/mankyd/htmlmin.git
+
 Features
 ========
 
@@ -63,5 +78,4 @@ Indices and tables
 ==================
 
 * :ref:`genindex`
-* :ref:`modindex`
 * :ref:`search`
