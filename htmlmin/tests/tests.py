@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import unittest
 
 import htmlmin
@@ -226,15 +227,17 @@ class TestMinifyFunction(HTMLMinTestCase):
 
   def test_basic_minification_quality(self):
     import codecs
-    inp = codecs.open('htmlmin/tests/large_test.html', encoding='utf-8').read()
+    with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
+      inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 796)
+    self.assertEqual(len(inp) - len(out), 776)
 
   def test_high_minification_quality(self):
     import codecs
-    inp = codecs.open('htmlmin/tests/large_test.html', encoding='utf-8').read()
+    with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
+      inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 4033)
+    self.assertEqual(len(inp) - len(out), 4013)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS

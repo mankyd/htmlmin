@@ -1,4 +1,9 @@
-import cgi
+from __future__ import unicode_literals
+try:
+  from html import escape
+except ImportError:
+  from cgi import escape
+
 import re
 try:
   from html.parser import HTMLParser
@@ -48,11 +53,11 @@ class HTMLMinParser(HTMLParser):
     return False
 
   def build_tag(self, tag, attrs, close_tag):
-    result = u'<{}'.format(cgi.escape(tag))
+    result = '<{}'.format(escape(tag))
     for k,v in attrs:
-      result += ' ' + cgi.escape(k)
+      result += ' ' + escape(k)
       if v is not None:
-        result += u'="{}"'.format(cgi.escape(v))
+        result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
     if close_tag:
       return result + '/>'
     return result + '>'
@@ -155,7 +160,7 @@ class HTMLMinParser(HTMLParser):
         # closing tags along since they affect output. For instance, a '</p>'
         # results in a '<p></p>' in Chrome.
         pass
-    self._data_buffer.append('</{}>'.format(cgi.escape(tag)))
+    self._data_buffer.append('</{}>'.format(escape(tag)))
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False

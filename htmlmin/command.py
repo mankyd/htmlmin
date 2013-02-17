@@ -118,13 +118,13 @@ def main():
   else:
     inp = sys.stdin
 
-  for line in sys.stdin.readlines():
+  for line in inp.readlines():
     minifier.input(line)
 
   if args.output_file:
     codecs.open(args.output_file, 'w', encoding=args.encoding).write(minifier.output)
   else:
-    print minifier.output
+    print(minifier.output)
 
 if __name__ == '__main__':
   main()
