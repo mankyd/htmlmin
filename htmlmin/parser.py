@@ -197,6 +197,8 @@ class HTMLMinParser(HTMLParser):
         # from between two blocks of text: a <!-- B --> c => a  c.
         if data[0] == ' ' and self._data_buffer[-1][-1] == ' ':
           data = data[1:]
+          if not data:
+            return
       self._data_buffer.append(data)
 
   def handle_entityref(self, data):

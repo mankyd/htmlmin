@@ -44,17 +44,18 @@ htmlmin is invoked by running::
 
   htmlmin input.html output.html
 
-If no output file is specified, it will print to stdout. Help with options can
-be retrieved at any time by running `htmlmin -h`::
+If no output file is specified, it will print to ``stdout``. If not input
+specified, it reads form ``stdin``. Help with options can be retrieved at
+any time by running `htmlmin -h`::
 
   htmlmin -h
   usage: htmlmin [-h] [-c] [-s] [--remove-all-empty-space] [-H] [-k] [-p [TAG [TAG ...]]] [-e ENCODING]
-                 INPUT [OUTPUT]
+                 [INPUT] [OUTPUT]
 
   Minify HTML
 
   positional arguments:
-    INPUT                 File path to html file to minify.
+    INPUT                 File path to html file to minify. Defaults to stdin.
     OUTPUT                File path to output to. Defaults to stdout.
 
   optional arguments:

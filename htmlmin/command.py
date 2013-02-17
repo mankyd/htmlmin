@@ -2,9 +2,10 @@
 
 import argparse
 import codecs
+import sys
 
 #import htmlmin
-from . import minify
+from . import Minifier
 
 parser = argparse.ArgumentParser(
   description='Minify HTML',
@@ -12,8 +13,9 @@ parser = argparse.ArgumentParser(
   )
 
 parser.add_argument('input_file',
+  nargs='?',
   metavar='INPUT',
-  help='File path to html file to minify.',
+  help='File path to html file to minify. Defaults to stdin.',
   )
 
 parser.add_argument('output_file',
@@ -94,18 +96,24 @@ parser.add_argument('-e', '--encoding',
 
 def main():
   args = parser.parse_args()
-  inp = codecs.open(args.input_file, encoding=args.encoding).read()
-  result = minify(inp,
+  minifier = Minifier(
     remove_comments=args.remove_comments,
     remove_empty_space=args.remove_empty_space,
-    in_head=args.in_head,
     pre_tags=args.pre_tags,
     keep_pre=args.keep_pre_attr,
     )
-  if args.output_file:
-    codecs.open(args.output_file, 'w', encoding=args.encoding).write(result)
+  if args.input_file:
+    inp = codecs.open(args.input_file, encoding=args.encoding)
   else:
-    print result
+    inp = sys.stdin
+
+  for line in sys.stdin.readlines():
+    minifier.input(line)
+
+  if args.output_file:
+    codecs.open(args.output_file, 'w', encoding=args.encoding).write(minifier.output)
+  else:
+    print minifier.output
 
 if __name__ == '__main__':
   main()
