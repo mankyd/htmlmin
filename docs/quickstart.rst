@@ -3,7 +3,7 @@ Quickstart
 For single invocations, there is the :class:`htmlmin.minify`
 method. It takes input html as a string for its first argument and returns
 minified html. It accepts multiple different options that allow you to tune the
-amount of minification being done with the defaults being the safest available
+amount of minification being done, with the defaults being the safest available
 options::
 
   >>> import htmlmin
@@ -35,6 +35,8 @@ minifications. However, if you are going to minify several pieces of HTML, the
 :class:`Minifier <htmlmin.Minifier>` class is provided. It works similarly, but
 allows for persistence of options between invocations and recycles the internal
 data structures used for minification.
+
+.. _command_line:
 
 Command Line
 ------------

@@ -11,7 +11,7 @@ An HTML Minifier with Seatbelts
 
    quickstart
    tutorial
-   api
+   reference
 
 
 htmlin is an HTML minifier that just works. It comes with safe defaults and
@@ -44,12 +44,16 @@ existing workflows.
 Features
 ========
 
-* Safely minify HTML with either a function call or from the command line.
+* Safely minify HTML with either a :class:`function call <htmlmin.minify>` or
+  from the :ref:`command line <command_line>`.
 * Extend what elements can and cannot be minified.
 * Intelligently remove whitespace completely or reduce to single spaces.
 * Properly handles unclosed HTML5 tags.
 * Optionally remove comments while marking some comments to keep.
-
+* Simple function :class:`decorator <htmlmin.decorator.htmlmin>` to minify all
+  function output.
+* Simple :class:`WSGI middleware <htmlmin.middleware.HTMLMinMiddleware>` to
+  minify web app output.
 
 Indices and tables
 ==================
