@@ -223,7 +223,8 @@ class HTMLMinParser(HTMLParser):
         # closing tags along since they affect output. For instance, a '</p>'
         # results in a '<p></p>' in Chrome.
         pass
-    self._data_buffer.append('</{}>'.format(escape(tag)))
+    if tag not in NO_CLOSE_TAGS:
+      self._data_buffer.append('</{}>'.format(escape(tag)))
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False

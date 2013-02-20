@@ -85,6 +85,10 @@ FEATURES_TEXTS = {
     '<body><input id="x" disabled="disabled"></body>',
     '<body><input id=x disabled></body>',
   ),
+  'remove_close_tags': (
+    '<body><br></br><br pre>   x   </br> </body>',
+    '<body><br><br>   x   </body>',
+  ),
   'remove_comments': (
     '<body> this text should <!-- X --> have comments removed</body>',
     '<body> this text should have comments removed</body>',
