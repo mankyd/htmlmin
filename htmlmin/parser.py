@@ -38,8 +38,10 @@ except ImportError:
   from HTMLParser import HTMLParser
 
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
-NO_CLOSE_TAGS = ('area', 'base', 'br', 'hr', 'img', 'input', 'keygen', 'meta',
-                 'param', 'source', 'track', 'wbr')
+# http://www.w3.org/TR/html51/syntax.html#elements-0
+NO_CLOSE_TAGS = ('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
+                 'input', 'keygen', 'link', 'meta', 'param', 'source', 'track',
+                 'wbr')
 # http://www.w3.org/TR/html51/index.html#attributes-1
 BOOLEAN_ATTRIBUTES = {
   'audio': ('autoplay', 'controls', 'loop', 'muted',),

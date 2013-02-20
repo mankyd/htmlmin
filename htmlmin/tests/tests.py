@@ -134,10 +134,12 @@ FEATURES_TEXTS = {
     '<body> <script>   X  </script> <style>   X</style> </body>',
   ),
   'remove_close_from_tags': (
-    ('<body> <area/> <base/> <br /> <hr/> <img />   <input   /> <keygen/> '
-     '<meta  /><param/><source/><track  /><wbr />  </body>'),
-    ('<body> <area> <base> <br> <hr> <img> <input> <keygen> '
-     '<meta><param><source><track><wbr> </body>'),
+    ('<body> <area/> <base/> <br /> <col/><command /><embed /><hr/> <img />'
+     '   <input   /> <keygen/> <meta  /><param/><source/><track  /><wbr />'
+     '  </body>'),
+    ('<body> <area> <base> <br> <col><command><embed><hr> <img>'
+     ' <input> <keygen> <meta><param><source><track><wbr>'
+     ' </body>'),
   ),
   'remove_space_from_self_closed_tags': (
     '<body>    <y />   <x    /></body>',
@@ -269,14 +271,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 8795)
+    self.assertEqual(len(inp) - len(out), 8806)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 12032)
+    self.assertEqual(len(inp) - len(out), 12043)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
