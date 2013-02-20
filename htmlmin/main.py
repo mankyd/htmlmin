@@ -85,6 +85,7 @@ def minify(input,
       remove_comments=remove_comments,
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
+      reduce_boolean_attributes=reduce_boolean_attributes,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
