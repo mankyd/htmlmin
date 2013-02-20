@@ -115,7 +115,7 @@ class HTMLMinParser(HTMLParser):
              k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
              k in BOOLEAN_ATTRIBUTES['*']):
           pass
-	elif not any((c in v for c in ('"', "'", ' ', '<', '>'))):
+        elif not any((c in v for c in ('"', "'", ' ', '<', '>'))):
           result += '={}'.format(escape(v, quote=True))
         else:
           result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
