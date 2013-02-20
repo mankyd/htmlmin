@@ -1,8 +1,12 @@
+import os
 from setuptools import setup, find_packages
+
 from htmlmin import __version__
 
-README = open('README.rst').read()
-LICENSE = open('LICENSE').read()
+here = os.path.dirname(__file__)
+
+README = open(os.path.join(here, 'README.rst')).read()
+LICENSE = open(os.path.join(here, 'LICENSE')).read()
 
 setup(
     name='htmlmin',
