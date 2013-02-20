@@ -69,9 +69,21 @@ test command runs project's unit tests without actually deploying it, by
 }
 
 FEATURES_TEXTS = {
+  'remove_quotes': (
+    '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
+    '<body> <div id=x style="   abc " data-a=b></div></body> ',
+  ),
   'remove_tag_name_whitespace': (
     '<body  >  <br   />  <textarea  >   </ textarea  ></  body>  ',
     '<body> <br> <textarea>   </textarea></body> '
+  ),
+  'keep_boolean_attributes': (
+    '<body><input id="x" disabled="disabled"></body>',
+    '<body><input id=x disabled=disabled></body>',
+  ),
+  'reduce_boolean_attributes': (
+    '<body><input id="x" disabled="disabled"></body>',
+    '<body><input id=x disabled></body>',
   ),
   'remove_comments': (
     '<body> this text should <!-- X --> have comments removed</body>',
@@ -83,7 +95,7 @@ FEATURES_TEXTS = {
   ),
   'keep_pre_attribute': (
     '<body>the <strong pre   style="">pre</strong> should stay  </body>',
-    '<body>the <strong pre style="">pre</strong> should stay </body>',
+    '<body>the <strong pre style>pre</strong> should stay </body>',
   ),
   'custom_pre_attribute': (
     '<body>the <strong pre  >   X  </strong><span custom>  Y  </span></body>',
@@ -91,18 +103,18 @@ FEATURES_TEXTS = {
   ),
   'keep_empty': (
     '<body> <div id="x"  >  A </div>  <div id="  y ">  B    </div>  </body>',
-    '<body> <div id="x"> A </div> <div id="  y "> B </div> </body>',
+    '<body> <div id=x> A </div> <div id="  y "> B </div> </body>',
   ),
   'remove_empty': (
     ('<body>  \n  <div id="x"  >  A </div>\r'
      '<div id="  y ">  B    </div>\r\n  <div> C </div>  <div>D</div> </body>'),
-    ('<body><div id="x"> A </div>'
+    ('<body><div id=x> A </div>'
      '<div id="  y "> B </div><div> C </div> <div>D</div> </body>'),
   ),
   'remove_all_empty': (
-    ('<body>  \n  <div id="x"  >  A </div>\r'
+    ('<body>  \n  <div id=x  >  A </div>\r'
      '<div id="  y ">  B    </div>\r\n  <div> C </div>  <div>D</div> </body>'),
-    ('<body><div id="x"> A </div>'
+    ('<body><div id=x> A </div>'
      '<div id="  y "> B </div><div> C </div><div>D</div></body>'),
   ),
   'dont_minify_div': (
@@ -257,14 +269,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 776)
+    self.assertEqual(len(inp) - len(out), 8795)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 4013)
+    self.assertEqual(len(inp) - len(out), 12032)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
@@ -291,6 +303,10 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_remove_comments(self):
     text = self.__reference_texts__['remove_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
+
+  def test_reduce_boolean_attributes(self):
+    text = self.__reference_texts__['reduce_boolean_attributes']
+    self.assertEqual(htmlmin.minify(text[0], reduce_boolean_attributes=True), text[1])
 
   def test_keep_comments(self):
     text = self.__reference_texts__['keep_comments']

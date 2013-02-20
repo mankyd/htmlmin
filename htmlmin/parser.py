@@ -40,6 +40,31 @@ except ImportError:
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 NO_CLOSE_TAGS = ('area', 'base', 'br', 'hr', 'img', 'input', 'keygen', 'meta',
                  'param', 'source', 'track', 'wbr')
+# http://www.w3.org/TR/html51/index.html#attributes-1
+BOOLEAN_ATTRIBUTES = {
+  'audio': ('autoplay', 'controls', 'loop', 'muted',),
+  'button': ('autofocus', 'disabled', 'formnovalidate',),
+  'command': ('checked', 'disabled',),
+  'dialog': ('open',),
+  'fieldset': ('disabled',),
+  'form': ('novalidate',),
+  'iframe': ('seamless',),
+  'img': ('ismap',),
+  'input': ('autofocus', 'checked', 'disabled', 'formnovalidate', 'multiple', 
+            'readonly', 'required',),
+  'keygen': ('autofocus', 'disabled',),
+  'object': ('typesmustmatch',),
+  'ol': ('reversed',),
+  'optgroup': ('disabled',),
+  'option': ('disabled', 'selected',),
+  'script': ('async', 'defer'),
+  'select': ('autofocus', 'disabled', 'multiple', 'required',),
+  'style': ('scoped',),
+  'textarea': ('autofocus', 'disabled', 'readonly', 'required',),
+  'track': ('default',),
+  'video': ('autoplay', 'controls', 'loop', 'muted',),
+  '*': ('hidden',),
+}
 
 leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
 whitespace_re = re.compile(r'\s+')
@@ -57,6 +82,7 @@ class HTMLMinParser(HTMLParser):
                remove_comments=False,
                remove_empty_space=False,
                remove_all_empty_space=False,
+               reduce_boolean_attributes=False,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
@@ -66,6 +92,7 @@ class HTMLMinParser(HTMLParser):
     self.remove_comments = remove_comments
     self.remove_empty_space = remove_empty_space
     self.remove_all_empty_space = remove_all_empty_space
+    self.reduce_boolean_attributes = reduce_boolean_attributes
     self.pre_attr = pre_attr
     self._data_buffer = []
     self._in_pre_tag = 0
@@ -83,8 +110,15 @@ class HTMLMinParser(HTMLParser):
     result = '<{}'.format(escape(tag))
     for k,v in attrs:
       result += ' ' + escape(k)
-      if v is not None:
-        result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
+      if v:
+        if self.reduce_boolean_attributes and (
+             k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
+             k in BOOLEAN_ATTRIBUTES['*']):
+          pass
+	elif not any((c in v for c in ('"', "'", ' ', '<', '>'))):
+          result += '={}'.format(escape(v, quote=True))
+        else:
+          result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
     if close_tag:
       return result + '/>'
     return result + '>'

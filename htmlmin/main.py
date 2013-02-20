@@ -34,6 +34,7 @@ def minify(input,
            remove_comments=False,
            remove_empty_space=False,
            remove_all_empty_space=False,
+           reduce_boolean_attributes=False,
            keep_pre=False,
            pre_tags=parser.PRE_TAGS,
            pre_attr='pre'):
@@ -60,6 +61,10 @@ def minify(input,
     tags. This is almost gauranteed to break your HTML unless you are very
     careful.
     nothing
+  :param reduce_boolean_attributes: Where allowed by the HTML5 specification,
+    attributes such as 'disabled' and 'readonly' will have their value removed,
+    so 'disabled="true"' will simply become 'disabled'. This is generally a
+    good option to turn on except when JavaScript relies on the values.
   :param keep_pre: By default, htmlmin uses the special attribute ``pre`` to
     allow you to demarcate areas of HTML that should not be minified. It removes
     this attribute as it finds it. Setting this value to ``True`` tells htmlmin
@@ -102,6 +107,7 @@ class Minifier(object):
                remove_comments=False,
                remove_empty_space=False,
                remove_all_empty_space=False,
+               reduce_boolean_attributes=False,
                keep_pre=False,
                pre_tags=parser.PRE_TAGS,
                pre_attr='pre'):
@@ -113,6 +119,7 @@ class Minifier(object):
       remove_comments=remove_comments,
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
+      reduce_boolean_attributes=reduce_boolean_attributes,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
