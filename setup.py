@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from htmlmin import __version__
 
-README = open('README.md').read()
+README = open('README.rst').read()
 LICENSE = open('LICENSE').read()
 
 setup(
