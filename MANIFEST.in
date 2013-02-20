@@ -1,2 +1,3 @@
-include *.md
+include README.rst
+include LICENSE
 prune htmlmin/tests
