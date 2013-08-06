@@ -44,7 +44,7 @@ htmlmin is invoked by running::
 
   htmlmin input.html output.html
 
-If no output file is specified, it will print to ``stdout``. If not input
+If no output file is specified, it will print to ``stdout``. If no input
 specified, it reads form ``stdin``. Help with options can be retrieved at
 any time by running `htmlmin -h`::
 
