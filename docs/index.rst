@@ -35,7 +35,7 @@ features that you can use to safely minify beyond the defaults, but you have to
 put them in yourself. For instance, by default, htmlmin will never minimize the
 content between ``<pre>``, ``<textarea>``, ``<script>``, and ``<style>`` tags.
 You can also  explicitly tell it to not minify additional tags either globally 
-name or by adding the custom ``pre`` attribute to a tag in your HTML. htmlmin 
+by name or by adding the custom ``pre`` attribute to a tag in your HTML. htmlmin 
 will remove the ``pre`` attributes as it parses your HTML automatically.
 
 It also includes a command-line tool for easy invocation and integration with
