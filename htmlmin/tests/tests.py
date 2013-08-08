@@ -73,6 +73,14 @@ FEATURES_TEXTS = {
     '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
     '<body> <div id=x style="   abc " data-a=b></div></body> ',
   ),
+  'remove_single_quotes': (
+    '<body><div thing=\'what\'></div></body> ',
+    '<body><div thing=what></div></body> ',
+  ),
+  'keep_nested_single_quotes': (
+    '<body><div thing="wh\'at"></div></body> ',
+    '<body><div thing="wh\'at"></div></body> ',
+  ),
   'remove_tag_name_whitespace': (
     '<body  >  <br   />  <textarea  >   </ textarea  ></  body>  ',
     '<body> <br> <textarea>   </textarea></body> '
