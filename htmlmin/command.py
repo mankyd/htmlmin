@@ -63,15 +63,15 @@ put two of them: <!--!! comment -->.
 
 parser.add_argument('-s', '--remove-empty-space',
   help=(
-'''When set, this removes empty space betwen tags in certain cases. 
+'''When set, this removes empty space betwen tags in certain cases.
 Specifically, it will remove empty space if and only if there a newline
-character occurs within the space. Thus, code like 
+character occurs within the space. Thus, code like
 '<span>x</span> <span>y</span>' will be left alone, but code such as
 '   ...
   </head>
   <body>
     ...'
-will become '...</head><body>...'. Note that this CAN break your 
+will become '...</head><body>...'. Note that this CAN break your
 html if you spread two inline tags over two lines. Use with caution.
 
 '''),
@@ -84,6 +84,13 @@ likely will cause unintended consequences. For instance, '<i>X</i> <i>Y</i>'
 will become '<i>X</i><i>Y</i>'. Putting whitespace along with other text will
 avoid this problem. Only use if you are confident in the result. Whitespace is
 not removed from inside of tags, thus '<span> </span>' will be left alone.
+
+'''),
+  action='store_true')
+
+parser.add_argument('--keep-optional-attribute-quotes',
+  help=(
+'''When set, this keeps all attribute quotes, even if they are optional.
 
 '''),
   action='store_true')
@@ -107,7 +114,7 @@ keep the 'pre' attributes in place.
 
 parser.add_argument('-a', '--pre-attr',
   help=(
-'''The attribute htmlmin looks for to find blocks of HTML that it should not 
+'''The attribute htmlmin looks for to find blocks of HTML that it should not
 minify. This attribute will be removed from the HTML unless '-k' is
 specified. Defaults to 'pre'.
 
@@ -136,6 +143,7 @@ def main():
   minifier = Minifier(
     remove_comments=args.remove_comments,
     remove_empty_space=args.remove_empty_space,
+    remove_optional_attribute_quotes=not args.keep_optional_attribute_quotes,
     pre_tags=args.pre_tags,
     keep_pre=args.keep_pre_attr,
     pre_attr=args.pre_attr,

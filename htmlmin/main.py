@@ -35,6 +35,7 @@ def minify(input,
            remove_empty_space=False,
            remove_all_empty_space=False,
            reduce_boolean_attributes=False,
+           remove_optional_attribute_quotes=True,
            keep_pre=False,
            pre_tags=parser.PRE_TAGS,
            pre_attr='pre'):
@@ -73,7 +74,7 @@ def minify(input,
     free to change this list as you see fit, but you will probably want to
     include ``pre`` and ``textarea`` if you make any changes to the list. Note
     that ``<script>`` and ``<style>`` tags are never minimized.
-  :param pre_attr: Specifies the attribute that, when found in an HTML tag, 
+  :param pre_attr: Specifies the attribute that, when found in an HTML tag,
     indicates that the content of the tag should not be minified. Defaults to
     ``pre``.
   :return: A string containing the minified HTML.
@@ -86,6 +87,7 @@ def minify(input,
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
       reduce_boolean_attributes=reduce_boolean_attributes,
+      remove_optional_attribute_quotes=remove_optional_attribute_quotes,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
@@ -96,7 +98,7 @@ def minify(input,
 class Minifier(object):
   """An object that supports HTML Minification.
 
-  Options are passed into this class at initialization time and are then 
+  Options are passed into this class at initialization time and are then
   persisted across each use of the instance. If you are going to be minifying
   multiple peices of HTML, this will be more efficient than using
   :class:`htmlmin.minify`.
@@ -109,6 +111,7 @@ class Minifier(object):
                remove_empty_space=False,
                remove_all_empty_space=False,
                reduce_boolean_attributes=False,
+               remove_optional_attribute_quotes=True,
                keep_pre=False,
                pre_tags=parser.PRE_TAGS,
                pre_attr='pre'):
@@ -121,6 +124,7 @@ class Minifier(object):
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
       reduce_boolean_attributes=reduce_boolean_attributes,
+      remove_optional_attribute_quotes=remove_optional_attribute_quotes,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
@@ -162,7 +166,7 @@ class Minifier(object):
   def finalize(self):
     """Finishes current input HTML and returns mininified result.
 
-    This method flushes any remaining input HTML and returns the minified 
+    This method flushes any remaining input HTML and returns the minified
     result. It resets the state of the internal parser in the process so that
     new HTML can be minified. Be sure to call this method before you reuse
     the ``Minifier`` instance on a new HTML document.
