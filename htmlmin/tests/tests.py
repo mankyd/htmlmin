@@ -105,6 +105,10 @@ FEATURES_TEXTS = {
     '<body> this text should <!--! not --> have comments removed</body>',
     '<body> this text should <!-- not --> have comments removed</body>',
   ),
+  'keep_optional_attribute_quotes': (
+    '<img width="100" height="50" src="#something" />',
+    '<img width="100" height="50" src="#something">',
+  ),
   'keep_pre_attribute': (
     '<body>the <strong pre   style="">pre</strong> should stay  </body>',
     '<body>the <strong pre style>pre</strong> should stay </body>',
@@ -326,6 +330,10 @@ class TestMinifyFeatures(HTMLMinTestCase):
     text = self.__reference_texts__['keep_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
+  def test_keep_optional_attribute_quotes(self):
+    text = self.__reference_texts__['keep_optional_attribute_quotes']
+    self.assertEqual(htmlmin.minify(text[0], remove_optional_attribute_quotes=False), text[1])
+
   def test_keep_pre_attribute(self):
     text = self.__reference_texts__['keep_pre_attribute']
     self.assertEqual(htmlmin.minify(text[0], keep_pre=True), text[1])
@@ -344,7 +352,7 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_remove_all_empty(self):
     text = self.__reference_texts__['remove_all_empty']
-    self.assertEqual(htmlmin.minify(text[0], remove_all_empty_space=True), 
+    self.assertEqual(htmlmin.minify(text[0], remove_all_empty_space=True),
                      text[1])
 
   def test_dont_minify_div(self):
@@ -401,28 +409,28 @@ class TestMiddleware(HTMLMinTestCase):
       response_headers.append(headers)
     response_body = ''.join(app({'status': status,
                                  'content': content,
-                                 'headers': headers}, 
+                                 'headers': headers},
                                 start_response))
     return response_status[0], response_headers[0], response_body
 
   def test_middlware(self):
     app = HTMLMinMiddleware(self.wsgi_app)
     status, headers, body = self.call_app(
-      app, '200 OK', (('Content-Type', 'text/html'),), 
+      app, '200 OK', (('Content-Type', 'text/html'),),
       '    X    Y   ')
     self.assertEqual(body, ' X Y ')
 
   def test_middlware_minifier_options(self):
     app = HTMLMinMiddleware(self.wsgi_app, remove_comments=True)
     status, headers, body = self.call_app(
-      app, '200 OK', (('Content-Type', 'text/html'),), 
+      app, '200 OK', (('Content-Type', 'text/html'),),
       '    X    Y   <!-- Z -->')
     self.assertEqual(body, ' X Y ')
 
   def test_middlware_off_by_default(self):
     app = HTMLMinMiddleware(self.wsgi_app, by_default=False)
     status, headers, body = self.call_app(
-      app, '200 OK', (('Content-Type', 'text/html'),), 
+      app, '200 OK', (('Content-Type', 'text/html'),),
       '    X    Y   ')
     self.assertEqual(body, '    X    Y   ')
 
@@ -432,7 +440,7 @@ class TestMiddleware(HTMLMinTestCase):
       app, '200 OK', (
         ('Content-Type', 'text/html'),
         ('X-HTML-Min-Enable', 'True'),
-        ), 
+        ),
       '    X    Y   ')
     self.assertEqual(body, ' X Y ')
 
@@ -442,7 +450,7 @@ class TestMiddleware(HTMLMinTestCase):
       app, '200 OK', (
         ('Content-Type', 'text/html'),
         ('X-HTML-Min-Enable', 'False'),
-        ), 
+        ),
       '    X    Y   ')
     self.assertEqual(body, '    X    Y   ')
 
@@ -452,7 +460,7 @@ class TestMiddleware(HTMLMinTestCase):
       app, '200 OK', (
         ('Content-Type', 'text/html'),
         ('X-HTML-Min-Enable', 'False'),
-        ), 
+        ),
       '    X    Y   ')
     self.assertFalse(any((h == 'X-HTML-Min-Enable' for h, v in headers)))
 
@@ -462,7 +470,7 @@ class TestMiddleware(HTMLMinTestCase):
       app, '200 OK', [
         ('Content-Type', 'text/html'),
         ('X-HTML-Min-Enable', 'False'),
-        ], 
+        ],
       '    X    Y   ')
     self.assertTrue(any((h == 'X-HTML-Min-Enable' for h, v in headers)))
 
