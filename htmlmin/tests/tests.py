@@ -85,15 +85,15 @@ FEATURES_TEXTS = {
     '<body  >  <br   />  <textarea  >   </ textarea  ></  body>  ',
     '<body> <br> <textarea>   </textarea></body> '
   ),
-  'no_reduce_attributes': (
+  'no_reduce_empty_attributes': (
     '<body><img src="/x.png" alt="" /></body>',
     '<body><img src=/x.png alt=""></body>',
   ),
-  'no_reduce_attributes_keep_quotes': (
+  'no_reduce_empty_attributes_keep_quotes': (
     '<body><img src="/x.png" alt="" /></body>',
     '<body><img src="/x.png" alt=""></body>',
   ),
-  'reduce_attributes': (
+  'reduce_empty_attributes': (
     '<body><img src="/x.png" alt="" /></body>',
     '<body><img src=/x.png alt></body>',
   ),
@@ -334,17 +334,17 @@ class TestMinifyFeatures(HTMLMinTestCase):
     text = self.__reference_texts__['remove_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
-  def test_no_reduce_attributes(self):
-    text = self.__reference_texts__['no_reduce_attributes']
-    self.assertEqual(htmlmin.minify(text[0], reduce_attributes=False), text[1])
+  def test_no_reduce_empty_attributes(self):
+    text = self.__reference_texts__['no_reduce_empty_attributes']
+    self.assertEqual(htmlmin.minify(text[0], reduce_empty_attributes=False), text[1])
 
-  def test_no_reduce_attributes_keep_quotes(self):
-    text = self.__reference_texts__['no_reduce_attributes_keep_quotes']
-    self.assertEqual(htmlmin.minify(text[0], reduce_attributes=False, remove_optional_attribute_quotes=False), text[1])
+  def test_no_reduce_empty_attributes_keep_quotes(self):
+    text = self.__reference_texts__['no_reduce_empty_attributes_keep_quotes']
+    self.assertEqual(htmlmin.minify(text[0], reduce_empty_attributes=False, remove_optional_attribute_quotes=False), text[1])
 
-  def test_reduce_attributes(self):
-    text = self.__reference_texts__['reduce_attributes']
-    self.assertEqual(htmlmin.minify(text[0], reduce_attributes=True), text[1])
+  def test_reduce_empty_attributes(self):
+    text = self.__reference_texts__['reduce_empty_attributes']
+    self.assertEqual(htmlmin.minify(text[0], reduce_empty_attributes=True), text[1])
 
   def test_reduce_boolean_attributes(self):
     text = self.__reference_texts__['reduce_boolean_attributes']

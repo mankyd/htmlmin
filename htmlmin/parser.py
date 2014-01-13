@@ -84,7 +84,7 @@ class HTMLMinParser(HTMLParser):
                remove_comments=False,
                remove_empty_space=False,
                remove_all_empty_space=False,
-               reduce_attributes=True,
+               reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
                keep_pre=False,
@@ -96,7 +96,7 @@ class HTMLMinParser(HTMLParser):
     self.remove_comments = remove_comments
     self.remove_empty_space = remove_empty_space
     self.remove_all_empty_space = remove_all_empty_space
-    self.reduce_attributes = reduce_attributes
+    self.reduce_empty_attributes = reduce_empty_attributes
     self.reduce_boolean_attributes = reduce_boolean_attributes
     self.remove_optional_attribute_quotes = remove_optional_attribute_quotes
     self.pre_attr = pre_attr
@@ -125,7 +125,7 @@ class HTMLMinParser(HTMLParser):
           result += '={}'.format(escape(v, quote=True))
         else:
           result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
-      elif not self.reduce_attributes:
+      elif not self.reduce_empty_attributes:
         result += '=""'
     if close_tag:
       return result + '/>'
