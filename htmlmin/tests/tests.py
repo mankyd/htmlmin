@@ -87,7 +87,7 @@ FEATURES_TEXTS = {
   ),
   'no_reduce_attributes': (
     '<body><img src="/x.png" alt="" /></body>',
-    '<body><img src=/x.png alt=></body>',
+    '<body><img src=/x.png alt=""></body>',
   ),
   'no_reduce_attributes_keep_quotes': (
     '<body><img src="/x.png" alt="" /></body>',

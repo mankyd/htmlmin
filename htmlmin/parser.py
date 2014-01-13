@@ -116,7 +116,7 @@ class HTMLMinParser(HTMLParser):
     result = '<{}'.format(escape(tag))
     for k,v in attrs:
       result += ' ' + escape(k)
-      if v or self.reduce_attributes is False:
+      if v:
         if self.reduce_boolean_attributes and (
              k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
              k in BOOLEAN_ATTRIBUTES['*']):
@@ -125,6 +125,8 @@ class HTMLMinParser(HTMLParser):
           result += '={}'.format(escape(v, quote=True))
         else:
           result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
+      elif not self.reduce_attributes:
+        result += '=""'
     if close_tag:
       return result + '/>'
     return result + '>'
