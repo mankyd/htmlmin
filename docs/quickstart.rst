@@ -49,7 +49,9 @@ specified, it reads form ``stdin``. Help with options can be retrieved at
 any time by running `htmlmin -h`::
 
   htmlmin -h
-  usage: htmlmin [-h] [-c] [-s] [--remove-all-empty-space] [-H] [-k] [-p [TAG [TAG ...]]] [-e ENCODING]
+  usage: htmlmin [-h] [-c] [-s] [--remove-all-empty-space]
+                 [--keep-optional-attribute-quotes] [-H] [-k] [-a PRE_ATTR]
+                 [-p [TAG [TAG ...]]] [-e ENCODING]
                  [INPUT] [OUTPUT]
 
   Minify HTML
@@ -84,6 +86,9 @@ any time by running `htmlmin -h`::
                           will become '<i>X</i><i>Y</i>'. Putting whitespace along with other text will
                           avoid this problem. Only use if you are confident in the result. Whitespace is
                           not removed from inside of tags, thus '<span> </span>' will be left alone.
+
+    --keep-optional-attribute-quotes
+                          When set, this keeps all attribute quotes, even if they are optional.
 
     -H, --in-head         If you are parsing only a fragment of HTML, and the fragment occurs in the
                           head of the document, setting this will remove some extra whitespace.

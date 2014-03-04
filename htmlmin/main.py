@@ -67,6 +67,9 @@ def minify(input,
     attributes such as 'disabled' and 'readonly' will have their value removed,
     so 'disabled="true"' will simply become 'disabled'. This is generally a
     good option to turn on except when JavaScript relies on the values.
+  :param remove_optional_attribute_quotes: When True, optional quotes around
+    attributes are removed. When False, all attribute quotes are left intact.
+    Defaults to True.
   :param keep_pre: By default, htmlmin uses the special attribute ``pre`` to
     allow you to demarcate areas of HTML that should not be minified. It removes
     this attribute as it finds it. Setting this value to ``True`` tells htmlmin
