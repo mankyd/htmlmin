@@ -68,6 +68,8 @@ BOOLEAN_ATTRIBUTES = {
   '*': ('hidden',),
 }
 
+leading_whitespace_re = re.compile(r'^\s+')
+trailing_whitespace_re = re.compile(r'\s+$')
 leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
 whitespace_re = re.compile(r'\s+')
 whitespace_newline_re = re.compile(r'\s*(\r|\n)+\s*')
@@ -103,8 +105,11 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer = []
     self._in_pre_tag = 0
     self._in_head = False
+    self._in_title = False
     self._after_doctype = False
     self._tag_stack = []
+    self._title_newly_opened = False
+    self.__title_trailing_whitespace = False
 
   def _has_pre(self, attrs):
     for k,v in attrs:
@@ -166,6 +171,9 @@ class HTMLMinParser(HTMLParser):
     self._after_doctype = False
     if tag == 'head':
       self._in_head = True
+    elif self._in_head and tag == 'title':
+      self._in_title = True
+      self._title_newly_opened = True
 
     tag_sets = ( # a list of tags and tags that they are closed by
       (('li',), ('li',)),
@@ -222,6 +230,9 @@ class HTMLMinParser(HTMLParser):
         # TODO: Did we know that we were in an head tag?! If not, we need to
         # reminify everything to remove extra spaces.
         self._in_head = False
+      elif tag == 'title':
+        self._in_title = False
+        self._title_newly_opened = False
       try:
         self._in_pre_tag -= self._close_tags_up_to(tag)
       except OpenTagNotFoundError:
@@ -259,9 +270,20 @@ class HTMLMinParser(HTMLParser):
           return
 
 
-      # if we're in the title, remove leading and trailing whitespace
-      if self._tag_stack and self._tag_stack[0][0] == 'title':
-        data = leading_trailing_whitespace_re.sub('', data)
+      # if we're in the title, remove leading and trailing whitespace.
+      # note that the title may be parsed in chunks if entityref's or charrefs
+      # are encountered.
+      if self._in_title:
+        if self.__title_trailing_whitespace:
+          self._data_buffer.append(' ')
+        self.__title_trailing_whitespace = data[-1].isspace()
+        if self._title_newly_opened:
+          self._title_newly_opened = False
+          data = leading_trailing_whitespace_re.sub('', data)
+        else:
+          data = trailing_whitespace_re.sub(
+            '', leading_whitespace_re.sub(' ', data))
+
       data = whitespace_re.sub(' ', data)
       if not data:
         return
@@ -277,9 +299,19 @@ class HTMLMinParser(HTMLParser):
       self._data_buffer.append(data)
 
   def handle_entityref(self, data):
+    if self._in_title:
+      if not self._title_newly_opened and self.__title_trailing_whitespace:
+        self._data_buffer.append(' ')
+        self.__title_trailing_whitespace = False
+      self._title_newly_opened = False
     self._data_buffer.append('&{};'.format(data))
 
   def handle_charref(self, data):
+    if self._in_title:
+      if not self._title_newly_opened and self.__title_trailing_whitespace:
+        self._data_buffer.append(' ')
+        self.__title_trailing_whitespace = False
+      self._title_newly_opened = False
     self._data_buffer.append('&#{};'.format(data))
 
   def handle_pi(self, data):

@@ -154,8 +154,8 @@ FEATURES_TEXTS = {
     '<body> <pre> X </pre> </body>',
   ),
   'remove_head_spaces': (
-    '<head>  <title> X  Y </title>  </head>',
-    '<head><title>X Y</title></head>',
+    '<head>  <title>   &#x2603;X  Y  &amp;  Z </title>  </head>',
+    '<head><title>&#x2603;X Y &amp; Z</title></head>',
   ),
   'dont_minify_scripts_or_styles': (
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
