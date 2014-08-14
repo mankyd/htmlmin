@@ -37,6 +37,7 @@ def minify(input,
            reduce_empty_attributes=True,
            reduce_boolean_attributes=False,
            remove_optional_attribute_quotes=True,
+           escape_tags=True,
            keep_pre=False,
            pre_tags=parser.PRE_TAGS,
            pre_attr='pre'):
@@ -93,6 +94,7 @@ def minify(input,
       reduce_empty_attributes=reduce_empty_attributes,
       reduce_boolean_attributes=reduce_boolean_attributes,
       remove_optional_attribute_quotes=remove_optional_attribute_quotes,
+      escape_tags=escape_tags,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
@@ -118,6 +120,7 @@ class Minifier(object):
                reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
+               escape_tags=True,
                keep_pre=False,
                pre_tags=parser.PRE_TAGS,
                pre_attr='pre'):
@@ -132,6 +135,7 @@ class Minifier(object):
       reduce_empty_attributes=reduce_empty_attributes,
       reduce_boolean_attributes=reduce_boolean_attributes,
       remove_optional_attribute_quotes=remove_optional_attribute_quotes,
+      escape_tags=escape_tags,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)

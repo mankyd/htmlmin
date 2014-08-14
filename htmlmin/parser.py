@@ -80,6 +80,9 @@ whitespace_newline_re = re.compile(r'\s*(\r|\n)+\s*')
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
 
+def escape_noop(v, **kwargs):
+    return v
+
 class HTMLMinError(Exception): pass
 class ParseError(HTMLMinError): pass
 class OpenTagNotFoundError(ParseError): pass
@@ -92,6 +95,7 @@ class HTMLMinParser(HTMLParser):
                reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
+               escape_tags=True,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
@@ -113,6 +117,10 @@ class HTMLMinParser(HTMLParser):
     self._tag_stack = []
     self._title_newly_opened = False
     self.__title_trailing_whitespace = False
+    if escape_tags:
+      self.escape = escape
+    else:
+      self.escape = escape_noop
 
   def _has_pre(self, attrs):
     for k,v in attrs:
@@ -123,11 +131,11 @@ class HTMLMinParser(HTMLParser):
   def build_tag(self, tag, attrs, close_tag):
     result = StringIO()
     result.write('<')
-    result.write(escape(tag))
+    result.write(self.escape(tag))
     needs_closing_space = False
     for k,v in attrs:
       result.write(' ')
-      result.write(escape(k))
+      result.write(self.escape(k))
       if v:
         if self.reduce_boolean_attributes and (
              k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
@@ -135,12 +143,14 @@ class HTMLMinParser(HTMLParser):
           pass
         elif self.remove_optional_attribute_quotes and not any((c in v for c in ('"', "'", ' ', '<', '>', '='))):
           result.write('=')
-          result.write(escape(v, quote=True))
+          result.write(self.escape(v, quote=True))
           needs_closing_space = v.endswith('/')
         else:
-          result.write('="')
-          result.write(escape(v, quote=True).replace('&#x27;', "'"))
-          result.write('"')
+          attr_val = self.escape(v, quote=True).replace("'", '&#x27;')
+          if '"' in attr_val:
+            result.write("='{}'".format(attr_val))
+          else:
+            result.write('="{}"'.format(attr_val))
       elif not self.reduce_empty_attributes:
         result.write('=""')
     if needs_closing_space:
@@ -256,7 +266,7 @@ class HTMLMinParser(HTMLParser):
         # results in a '<p></p>' in Chrome.
         pass
     if tag not in NO_CLOSE_TAGS:
-      self._data_buffer.extend(['</', escape(tag), '>'])
+      self._data_buffer.extend(['</', self.escape(tag), '>'])
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False
