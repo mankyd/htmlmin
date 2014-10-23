@@ -119,6 +119,7 @@ class HTMLMinParser(HTMLParser):
 
   def build_tag(self, tag, attrs, close_tag):
     result = '<{}'.format(escape(tag))
+    needs_closing_space = False
     for k,v in attrs:
       result += ' ' + escape(k)
       if v:
@@ -128,10 +129,13 @@ class HTMLMinParser(HTMLParser):
           pass
         elif self.remove_optional_attribute_quotes and not any((c in v for c in ('"', "'", ' ', '<', '>', '='))):
           result += '={}'.format(escape(v, quote=True))
+          needs_closing_space = v.endswith('/')
         else:
           result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
       elif not self.reduce_empty_attributes:
         result += '=""'
+    if needs_closing_space:
+      result += ' '
     if close_tag:
       return result + '/>'
     return result + '>'

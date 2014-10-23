@@ -73,6 +73,10 @@ FEATURES_TEXTS = {
     '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
     '<body> <div id=x style="   abc " data-a=b></div></body> ',
   ),
+  'remove_quotes_keep_quote_trailing_slash_last': (
+    '<div x="x/" y="y/"></div>',
+    '<div x=x/ y=y/ ></div>',  # NOTE the single space at the end, inserted to not make this a self-closing tag
+  ),
   'remove_single_quotes': (
     '<body><div thing=\'what\'></div></body> ',
     '<body><div thing=what></div></body> ',
@@ -299,14 +303,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 8610)
+    self.assertEqual(len(inp) - len(out), 8599)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 11847)
+    self.assertEqual(len(inp) - len(out), 11836)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
