@@ -73,6 +73,10 @@ FEATURES_TEXTS = {
     '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
     '<body> <div id=x style="   abc " data-a=b></div></body> ',
   ),
+  'remove_quotes_keep_quote_trailing_slash_last': (
+    '<div x="x/" y="y/"></div>',
+    '<div x=x/ y=y/ ></div>',  # NOTE the single space at the end, inserted to not make this a self-closing tag
+  ),
   'remove_single_quotes': (
     '<body><div thing=\'what\'></div></body> ',
     '<body><div thing=what></div></body> ',
