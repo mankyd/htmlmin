@@ -15,7 +15,7 @@ An HTML Minifier with Seatbelts
 
 
 htmlmin is an HTML minifier that just works. It comes with safe defaults and
-an easily configurable set options. It cam turn this::
+an easily configurable set options. It can turn this::
 
   <html>
     <head>
