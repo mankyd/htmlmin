@@ -265,7 +265,7 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer.append(self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS))
 
   def handle_comment(self, data):
-    if not self.remove_comments or data[0] == '!':
+    if not self.remove_comments or data[0] == '!' or re.match(r'\[if\s', data):
       self._data_buffer.append('<!--{}-->'.format(
           data[1:] if data[0] == '!' else data))
 
