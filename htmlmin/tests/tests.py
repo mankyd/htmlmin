@@ -121,6 +121,10 @@ FEATURES_TEXTS = {
     '<body> this text should <!--! not --> have comments removed</body>',
     '<body> this text should <!-- not --> have comments removed</body>',
   ),
+  'keep_conditional_comments': (
+    '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
+    '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
+  ),
   'keep_optional_attribute_quotes': (
     '<img width="100" height="50" src="#something" />',
     '<img width="100" height="50" src="#something">',
@@ -310,7 +314,7 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 11836)
+    self.assertEqual(len(inp) - len(out), 11713)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
@@ -356,6 +360,10 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_keep_comments(self):
     text = self.__reference_texts__['keep_comments']
+    self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
+
+  def test_keep_conditional_comments(self):
+    text = self.__reference_texts__['keep_conditional_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
   def test_keep_optional_attribute_quotes(self):
