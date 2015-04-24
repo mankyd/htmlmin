@@ -29,6 +29,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import argparse
 import codecs
+import locale
 import sys
 
 #import htmlmin
@@ -151,13 +152,15 @@ def main():
   if args.input_file:
     inp = codecs.open(args.input_file, encoding=args.encoding)
   else:
-    inp = sys.stdin
+    inp = codecs.getreader(
+      sys.stdin.encoding or locale.getpreferredencoding())(sys.stdin)
 
   for line in inp.readlines():
     minifier.input(line)
 
   if args.output_file:
-    codecs.open(args.output_file, 'w', encoding=args.encoding).write(minifier.output)
+    codecs.open(
+      args.output_file, 'w', encoding=args.encoding).write(minifier.output)
   else:
     print(minifier.output)
 
