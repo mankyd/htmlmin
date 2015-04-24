@@ -26,10 +26,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from __future__ import unicode_literals
+import sys
 try:
   from html import escape
 except ImportError:
   from cgi import escape
+
+from io import StringIO
 
 import re
 try:
@@ -118,23 +121,35 @@ class HTMLMinParser(HTMLParser):
     return False
 
   def build_tag(self, tag, attrs, close_tag):
-    result = '<{}'.format(escape(tag))
+    result = StringIO()
+    result.write('<')
+    result.write(escape(tag))
+    needs_closing_space = False
     for k,v in attrs:
-      result += ' ' + escape(k)
+      result.write(' ')
+      result.write(escape(k))
       if v:
         if self.reduce_boolean_attributes and (
              k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
              k in BOOLEAN_ATTRIBUTES['*']):
           pass
         elif self.remove_optional_attribute_quotes and not any((c in v for c in ('"', "'", ' ', '<', '>', '='))):
-          result += '={}'.format(escape(v, quote=True))
+          result.write('=')
+          result.write(escape(v, quote=True))
+          needs_closing_space = v.endswith('/')
         else:
-          result += '="{}"'.format(escape(v, quote=True).replace('&#x27;', "'"))
+          result.write('="')
+          result.write(escape(v, quote=True).replace('&#x27;', "'"))
+          result.write('"')
       elif not self.reduce_empty_attributes:
-        result += '=""'
+        result.write('=""')
+    if needs_closing_space:
+      result.write(' ')
     if close_tag:
-      return result + '/>'
-    return result + '>'
+      result.write('/>')
+    else:
+      result.write('>')
+    return result.getvalue()
 
   def handle_decl(self, decl):
     if (len(self._data_buffer) == 1 and
@@ -241,7 +256,7 @@ class HTMLMinParser(HTMLParser):
         # results in a '<p></p>' in Chrome.
         pass
     if tag not in NO_CLOSE_TAGS:
-      self._data_buffer.append('</{}>'.format(escape(tag)))
+      self._data_buffer.extend(['</', escape(tag), '>'])
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False

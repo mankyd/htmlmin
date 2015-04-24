@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-htmlin
+htmlmin
 ===================================
 An HTML Minifier with Seatbelts
 
@@ -14,8 +14,8 @@ An HTML Minifier with Seatbelts
    reference
 
 
-htmlin is an HTML minifier that just works. It comes with safe defaults and
-an easily configurable set options. It cam turn this::
+htmlmin is an HTML minifier that just works. It comes with safe defaults and
+an easily configurable set options. It can turn this::
 
   <html>
     <head>
