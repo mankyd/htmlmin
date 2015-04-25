@@ -1,0 +1,7 @@
+0.1.6
+=====
+* Always quote attributes that end in "/". (Thanks nvie)
+* Use StringIO to speed up string building. (Thanks nvie)
+* Typo fixes in documentation. (Thanks aabrahamowicz and Namibnat)
+* Keep Microsoft's conditional comments. (Thanks mreinhardt)
+* Properly handle empty comments. (Thanks Epsirom)
