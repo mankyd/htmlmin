@@ -114,7 +114,7 @@ FEATURES_TEXTS = {
     '<body><br><br>   x   </body>',
   ),
   'remove_comments': (
-    '<body> this text should <!-- X --> have comments removed</body>',
+    '<body> this text should <!-- X --> have <!----> comments removed</body>',
     '<body> this text should have comments removed</body>',
   ),
   'keep_comments': (
