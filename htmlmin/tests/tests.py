@@ -125,6 +125,10 @@ FEATURES_TEXTS = {
     '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
     '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
   ),
+  'remove_nonconditional_comments': (
+    '<body>remove other [if] things <!-- so [if IE8]--><style>h1 {color: red;}</style><!--[endif]--></body>',
+    '<body>remove other [if] things <style>h1 {color: red;}</style></body>',
+  ),
   'keep_optional_attribute_quotes': (
     '<img width="100" height="50" src="#something" />',
     '<img width="100" height="50" src="#something">',
@@ -364,6 +368,10 @@ class TestMinifyFeatures(HTMLMinTestCase):
 
   def test_keep_conditional_comments(self):
     text = self.__reference_texts__['keep_conditional_comments']
+    self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
+
+  def test_remove_nonconditional_comments(self):
+    text = self.__reference_texts__['remove_nonconditional_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
 
   def test_keep_optional_attribute_quotes(self):
