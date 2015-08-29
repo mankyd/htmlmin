@@ -78,6 +78,14 @@ html if you spread two inline tags over two lines. Use with caution.
 '''),
   action='store_true')
 
+parser.add_argument('--allow-comments-in-tag-attributes',
+  help=(
+'''When set, this preserves comments in tag attributes. For example:
+<link href="<!--anchor:static_url-->style.css"/> would get butchered without this param.
+
+'''),
+  action='store_true')
+
 parser.add_argument('--remove-all-empty-space',
   help=(
 '''When set, this removes ALL empty space betwen tags. WARNING: this can and
@@ -145,6 +153,7 @@ def main():
     remove_comments=args.remove_comments,
     remove_empty_space=args.remove_empty_space,
     remove_optional_attribute_quotes=not args.keep_optional_attribute_quotes,
+    comments_in_tag_attributes=args.allow_comments_in_tag_attributes,
     pre_tags=args.pre_tags,
     keep_pre=args.keep_pre_attr,
     pre_attr=args.pre_attr,
