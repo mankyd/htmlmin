@@ -92,6 +92,7 @@ class HTMLMinParser(HTMLParser):
                reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
+               comments_in_tag_attributes=False,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
@@ -104,6 +105,7 @@ class HTMLMinParser(HTMLParser):
     self.reduce_empty_attributes = reduce_empty_attributes
     self.reduce_boolean_attributes = reduce_boolean_attributes
     self.remove_optional_attribute_quotes = remove_optional_attribute_quotes
+    self.comments_in_tag_attributes = comments_in_tag_attributes
     self.pre_attr = pre_attr
     self._data_buffer = []
     self._in_pre_tag = 0
@@ -139,7 +141,10 @@ class HTMLMinParser(HTMLParser):
           needs_closing_space = v.endswith('/')
         else:
           result.write('="')
-          result.write(escape(v, quote=True).replace('&#x27;', "'"))
+          if not self.comments_in_tag_attributes:
+            result.write(escape(v, quote=True).replace('&#x27;', "'"))
+          else:
+            result.write(v)
           result.write('"')
       elif not self.reduce_empty_attributes:
         result.write('=""')
