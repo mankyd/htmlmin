@@ -60,9 +60,8 @@ def minify(input,
     a single space. Be careful, this can have unintended consequences.
   :param remove_all_empty_space: A more extreme version of
     ``remove_empty_space``, this removes all empty whitespace found between
-    tags. This is almost gauranteed to break your HTML unless you are very
+    tags. This is almost guaranteed to break your HTML unless you are very
     careful.
-    nothing
   :param reduce_boolean_attributes: Where allowed by the HTML5 specification,
     attributes such as 'disabled' and 'readonly' will have their value removed,
     so 'disabled="true"' will simply become 'disabled'. This is generally a
