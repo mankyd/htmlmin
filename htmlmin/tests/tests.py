@@ -69,6 +69,14 @@ test command runs project's unit tests without actually deploying it, by
 }
 
 FEATURES_TEXTS = {
+  'escape_tags_true': (
+    '<body  >  <a href="http://example.com/?hello=world&foo=bar" >hello</a></  body>  ',
+    '<body> <a href="http://example.com/?hello=world&amp;foo=bar">hello</a></body> ',
+  ),
+  'escape_tags_false': (
+    '<body  >  <a href="http://example.com/?hello=world&foo=bar" >hello</a></  body>  ',
+    '<body> <a href="http://example.com/?hello=world&foo=bar">hello</a></body> ',
+  ),
   'remove_quotes': (
     '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
     '<body> <div id=x style="   abc " data-a=b></div></body> ',
@@ -341,6 +349,14 @@ class TestMinifierObject(HTMLMinTestCase):
 
 class TestMinifyFeatures(HTMLMinTestCase):
   __reference_texts__ = FEATURES_TEXTS
+
+  def test_escape_tags_true(self):
+    text = self.__reference_texts__['escape_tags_true']
+    self.assertEqual(htmlmin.minify(text[0], escape_tags=True), text[1])
+
+  def test_escape_tags_false(self):
+    text = self.__reference_texts__['escape_tags_false']
+    self.assertEqual(htmlmin.minify(text[0], escape_tags=False), text[1])
 
   def test_remove_comments(self):
     text = self.__reference_texts__['remove_comments']
