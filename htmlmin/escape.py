@@ -61,7 +61,7 @@ def escape_attr_value(val, double_quote=False):
   elif "'" in val:
     return (val, DOUBLE_QUOTE)
 
-  if not val or val[0].isspace() or val[-1].isspace():
+  if not val or any((c.isspace() for c in val)):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 

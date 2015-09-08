@@ -54,6 +54,13 @@ class TestEscapeAttributes(unittest.TestCase):
   def test_single_quote(self):
     self.assertSingleQuote('foo"bar', 'foo"bar')
 
+  def test_quote_space(self):
+    self.assertDoubleQuote("foo bar", "foo bar")
+    self.assertDoubleQuote(" foobar", " foobar")
+    self.assertDoubleQuote("foobar ", "foobar ")
+    self.assertDoubleQuote(" foobar ", " foobar ")
+    self.assertDoubleQuote("", "")
+
   def test_force_double_quote(self):
     result = escape.escape_attr_value("foobar", double_quote=True)
     self.assertEqual('foobar', result[0])

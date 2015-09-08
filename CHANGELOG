@@ -1,6 +1,11 @@
+0.1.9
+=====
+* Fix bug introduced in 0.1.7 involving spaces in attribute values
+
+
 0.1.8
 =====
-* Fix bug introduced in 0.1.7 involving repeated ampersands.
+5A* Fix bug introduced in 0.1.7 involving repeated ampersands.
 
 0.1.7
 =====
