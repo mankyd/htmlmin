@@ -5,7 +5,7 @@
 
 0.1.8
 =====
-5A* Fix bug introduced in 0.1.7 involving repeated ampersands.
+* Fix bug introduced in 0.1.7 involving repeated ampersands.
 
 0.1.7
 =====
