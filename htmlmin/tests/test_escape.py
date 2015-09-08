@@ -65,6 +65,12 @@ class TestEscapeAttributes(unittest.TestCase):
   def test_ampersand_char_ref(self):
     self.assertNoQuotes('foo&bar', 'foo&amp;bar')
 
+  def test_multi_ampersand_char_ref(self):
+    self.assertNoQuotes('foo&&bar', 'foo&&amp;bar')
+    self.assertNoQuotes('foo&&&bar', 'foo&&&amp;bar')
+    self.assertNoQuotes('foo&&&&bar', 'foo&&&&amp;bar')
+    self.assertNoQuotes('foo&&bar&&baz', 'foo&&amp;bar&&amp;baz')
+
   def test_ampersand_decimal(self):
     self.assertNoQuotes('foo&#34', 'foo&amp;#34')
 
