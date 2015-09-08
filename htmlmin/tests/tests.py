@@ -32,6 +32,8 @@ import htmlmin
 from htmlmin.decorator import htmlmin as htmlmindecorator
 from htmlmin.middleware import HTMLMinMiddleware
 
+from . import test_escape
+
 MINIFY_FUNCTION_TEXTS = {
   'simple_text': (
     '  a  b',
@@ -311,14 +313,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 8599)
+    self.assertEqual(len(inp) - len(out), 11582)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 11713)
+    self.assertEqual(len(inp) - len(out), 14696)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
@@ -541,6 +543,7 @@ def suite():
         self_opening_tags_suite,
         decorator_suite,
         middleware_suite,
+        test_escape.suite(),
         ])
 
 if __name__ == '__main__':
