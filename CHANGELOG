@@ -1,3 +1,7 @@
+0.1.7
+=====
+* Improved attribute escaping. Greatly improves compression.
+
 0.1.6
 =====
 * Always quote attributes that end in "/". (Thanks nvie)
