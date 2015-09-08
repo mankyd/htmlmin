@@ -97,9 +97,17 @@ def escape_ambiguous_ampersand(val):
           result.append('&;')
         state = 0
         amp_buff = []
+      elif c == '&':
+        if amp_buff:
+          result.append('&amp;')
+          result.extend(amp_buff)
+        else:
+          result.append('&')
+        amp_buff = []
       else:
         result.append('&')
         result.extend(amp_buff)
+        result.append(c)
         state = 0
         amp_buff = []
     elif state == 2:  # numeric character reference
@@ -116,6 +124,14 @@ def escape_ambiguous_ampersand(val):
         else:
           result.append('&#;')
         state = 0
+        amp_buff = []
+      elif c == '&':
+        if amp_buff:
+          result.append('&amp;#')
+          result.extend(amp_buff)
+        else:
+          result.append('&#')
+        state = 1
         amp_buff = []
       else:
         if amp_buff:
@@ -141,6 +157,14 @@ def escape_ambiguous_ampersand(val):
         else:
           result.append('&#x;')
         state = 0
+        amp_buff = []
+      elif c == '&':
+        if amp_buff:
+          result.append('&amp;#x')
+          result.extend(amp_buff)
+        else:
+          result.append('&#x')
+        state = 1
         amp_buff = []
       else:
         if amp_buff:
