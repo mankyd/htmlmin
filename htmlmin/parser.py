@@ -93,7 +93,11 @@ class HTMLMinParser(HTMLParser):
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
-    HTMLParser.__init__(self)
+    if sys.version_info[0] >= 3 and sys.version_info[1] >= 5:
+      # convert_charrefs is True by default in Python 3.5.0 and newer
+      HTMLParser.__init__(self, convert_charrefs=False)
+    else:
+      HTMLParser.__init__(self)
     self.keep_pre = keep_pre
     self.pre_tags = pre_tags
     self.remove_comments = remove_comments
