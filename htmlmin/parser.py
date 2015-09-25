@@ -93,8 +93,9 @@ class HTMLMinParser(HTMLParser):
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
-    if sys.version_info[0] >= 3 and sys.version_info[1] >= 5:
-      # convert_charrefs is True by default in Python 3.5.0 and newer
+    if sys.version_info[0] >= 3 and sys.version_info[1] >= 4:
+      # convert_charrefs is True by default in Python 3.5.0 and newer. It was
+      # introduced in 3.4.
       HTMLParser.__init__(self, convert_charrefs=False)
     else:
       HTMLParser.__init__(self)
