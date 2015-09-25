@@ -27,4 +27,4 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 from .main import minify, Minifier
 
-__version__ = '0.1.9'
+__version__ = '0.1.10'
