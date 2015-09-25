@@ -1,3 +1,8 @@
+0.1.10
+======
+* Fix bug in Python 3.5 where char refs were being improperly escaped
+  (thanks tenzer)
+
 0.1.9
 =====
 * Fix bug introduced in 0.1.7 involving spaces in attribute values
