@@ -30,6 +30,8 @@ try:
 except ImportError:
   from cgi import escape
 
+import re
+
 NO_QUOTES = 0
 SINGLE_QUOTE = 1
 DOUBLE_QUOTE = 2
@@ -61,7 +63,7 @@ def escape_attr_value(val, double_quote=False):
   elif "'" in val:
     return (val, DOUBLE_QUOTE)
 
-  if not val or any((c.isspace() for c in val)) or '=' in val:
+  if not val or any((c.isspace() for c in val)) or re.search(r"[=><`]", val):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 
