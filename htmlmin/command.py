@@ -151,7 +151,7 @@ def main():
   if args.input_file:
     inp = codecs.open(args.input_file, encoding=args.encoding)
   else:
-    inp = io.open(0)
+    inp = io.open(0, encoding=args.encoding)
 
   for line in inp.readlines():
     minifier.input(line)
