@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Copyright (c) 2013, Dave Mankoff
 All rights reserved.
@@ -24,8 +25,6 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
-
-#!/usr/bin/env python
 
 import argparse
 import codecs
@@ -160,7 +159,7 @@ def main():
     codecs.open(
       args.output_file, 'w', encoding=args.encoding).write(minifier.output)
   else:
-    print(minifier.output)
+    io.open(1, 'w', encoding=args.encoding).write(minifier.output)
 
 if __name__ == '__main__':
   main()
