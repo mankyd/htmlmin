@@ -134,7 +134,9 @@ tags are always left unmininfied.
   nargs='*',
   default=['pre', 'textarea'])
 parser.add_argument('-e', '--encoding',
-  help=("Encoding to read and write with. Default 'utf-8'.\n\n"),
+  help=("Encoding to read and write with. Default 'utf-8'."
+        " When reading from stdin, attempts to use the system's"
+        " encoding before defaulting to utf-8.\n\n"),
   default=None,
   )
 
