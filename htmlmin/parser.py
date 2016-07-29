@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import unicode_literals
 import sys
 
-from io import StringIO
-
 import re
 try:
   from html.parser import HTMLParser
@@ -124,42 +122,66 @@ class HTMLMinParser(HTMLParser):
     return False
 
   def build_tag(self, tag, attrs, close_tag):
-    result = StringIO()
-    result.write('<')
-    result.write(escape.escape_tag(tag))
-    needs_closing_space = False
-    for k,v in attrs:
-      result.write(' ')
-      result.write(escape.escape_attr_name(k))
+    last_quoted = -1
+    last_no_slash = -1
+
+    attrs = list(attrs)  # We're modifying it in place
+    for i, (k, v) in enumerate(attrs):
+      k = escape.escape_attr_name(k)
       if v:
         if self.reduce_boolean_attributes and (
-             k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
-             k in BOOLEAN_ATTRIBUTES['*']):
-          pass
+            k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
+            k in BOOLEAN_ATTRIBUTES['*']):
+          # For our use case, we treat boolean attributes as quoted because they
+          # don't require space between them and "/>" in closing tags.
+          attrs[i] = k
+          last_quoted = i
         else:
-          result.write('=')
           (v, q) = escape.escape_attr_value(
             v, double_quote=not self.remove_optional_attribute_quotes)
           if q == escape.NO_QUOTES:
-            result.write(v)
+            attrs[i] = '%s=%s' % (k, v)
+            if v[-1] != '/':
+              last_no_slash = i
           elif q == escape.DOUBLE_QUOTE:
-            result.write('"')
-            result.write(v)
-            result.write('"')
+            attrs[i] = '%s="%s"' % (k, v)
+            last_quoted = i
           else:  # SINGLE_QUOTE
-            result.write("'")
-            result.write(v)
-            result.write("'")
-          needs_closing_space = q == escape.NO_QUOTES and v.endswith('/')
-      elif not self.reduce_empty_attributes:
-        result.write('=""')
-    if needs_closing_space:
-      result.write(' ')
-    if close_tag:
-      result.write('/>')
-    else:
-      result.write('>')
-    return result.getvalue()
+            attrs[i] = "%s='%s'" % (k, v)
+            last_quoted = i
+      elif self.reduce_empty_attributes:
+        attrs[i] = k
+      else:
+        attrs[i] = '%s=""' % k
+
+    # 1. If there are no attributes, no additional space is necessary.
+    # 2. If last attribute is quoted, no additional space is necessary.
+    # 3. Two things are happening here:
+    #    a) according to the standard, <foo bar=baz/> should be treated as <foo
+    #       bar="baz/"> so space is necessary if this is self-closing tag,
+    #       however
+    #    b) reportedly (https://github.com/mankyd/htmlmin/pull/12), older
+    #       versions of WebKit interpret <foo bar=baz/> as self-closing tag so
+    #       we need the space if the last argument ends with a slash.
+    space_maybe = ''
+    if attrs:
+      needs_space = lambda last_attr: (last_attr[-1] not in '"\'' and
+                                       (close_tag or last_attr[-1] == '/'))
+      if needs_space(attrs[-1][-1]):
+        # If moving attributes around can help, do it.  Otherwise bite the
+        # bullet and put the space in.
+        i = last_no_slash if last_quoted == -1 else last_quoted
+        if i == -1 or needs_space(attrs[i]):
+          space_maybe = ' '
+        else:
+          attrs.append(attrs[i])
+          del attrs[i]
+
+    return '<%s%s%s%s%s>' % (escape.escape_tag(tag),
+                             ' ' if attrs else '',
+                             ' '.join(attrs),
+                             space_maybe,
+                             '/' if close_tag else '')
 
   def handle_decl(self, decl):
     if (len(self._data_buffer) == 1 and
