@@ -134,7 +134,8 @@ class HTMLMinParser(HTMLParser):
     attrs = list(attrs)  # We're modifying it in place
     for i, (k, v) in enumerate(attrs):
       k = escape.escape_attr_name(k)
-      if (not v and self.reduce_empty_attributes) or reduce_boolean(k):
+      if (v is None or (not v and self.reduce_empty_attributes) or
+          reduce_boolean(k)):
         # For our use case, we treat boolean attributes as quoted because they
         # don't require space between them and "/>" in closing tags.
         attrs[i] = k
