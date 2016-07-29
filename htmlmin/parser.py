@@ -184,7 +184,7 @@ class HTMLMinParser(HTMLParser):
     if (len(self._data_buffer) == 1 and
         whitespace_re.match(self._data_buffer[0])):
       self._data_buffer = []
-    self._data_buffer.append('<!' + decl + '>\n')
+    self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
 
   def in_tag(self, *tags):
