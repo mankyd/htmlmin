@@ -39,7 +39,8 @@ def minify(input,
            remove_optional_attribute_quotes=True,
            keep_pre=False,
            pre_tags=parser.PRE_TAGS,
-           pre_attr='pre'):
+           pre_attr='pre',
+           cls=parser.HTMLMinParser):
   """Minifies HTML in one shot.
 
   :param input: A string containing the HTML to be minified.
@@ -85,7 +86,7 @@ def minify(input,
   If you are going to be minifying multiple HTML documents, each with the same
   settings, consider using :class:`.Minifier`.
   """
-  minifier = parser.HTMLMinParser(
+  minifier = cls(
       remove_comments=remove_comments,
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
@@ -119,12 +120,13 @@ class Minifier(object):
                remove_optional_attribute_quotes=True,
                keep_pre=False,
                pre_tags=parser.PRE_TAGS,
-               pre_attr='pre'):
+               pre_attr='pre',
+               cls=parser.HTMLMinParser):
     """Initialize the Minifier.
 
     See :class:`htmlmin.minify` for an explanation of options.
     """
-    self._parser = parser.HTMLMinParser(
+    self._parser = cls(
       remove_comments=remove_comments,
       remove_empty_space=remove_empty_space,
       remove_all_empty_space=remove_all_empty_space,
@@ -181,4 +183,3 @@ class Minifier(object):
     result = self._parser.result
     self._parser.reset()
     return result
-
