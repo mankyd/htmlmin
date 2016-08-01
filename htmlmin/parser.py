@@ -67,12 +67,6 @@ BOOLEAN_ATTRIBUTES = {
   '*': ('hidden',),
 }
 
-leading_whitespace_re = re.compile(r'^\s+')
-trailing_whitespace_re = re.compile(r'\s+$')
-leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
-whitespace_re = re.compile(r'\s+')
-whitespace_newline_re = re.compile(r'\s*(\r|\n)+\s*')
-
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
 
@@ -182,8 +176,7 @@ class HTMLMinParser(HTMLParser):
                              '/' if close_tag else '')
 
   def handle_decl(self, decl):
-    if (len(self._data_buffer) == 1 and
-        whitespace_re.match(self._data_buffer[0])):
+    if len(self._data_buffer) == 1 and self._data_buffer[0][0].isspace():
       self._data_buffer = []
     self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
@@ -295,8 +288,7 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer.append(self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS))
 
   def handle_comment(self, data):
-    if not self.remove_comments or (
-        data and (data[0] == '!' or re.match(r'^\[if\s', data))):
+    if not self.remove_comments or re.match(r'^(?:!|\[if\s)', data):
       self._data_buffer.append('<!--{}-->'.format(
           data[1:] if len(data) and data[0] == '!' else data))
 
@@ -307,14 +299,11 @@ class HTMLMinParser(HTMLParser):
       # remove_all_empty_space matches everything. remove_empty_space only
       # matches if there's a newline involved.
       if self.remove_all_empty_space or self._in_head or self._after_doctype:
-        match = whitespace_re.match(data)
-        if match and match.end(0) == len(data):
+        if data.isspace():
           return
-      elif self.remove_empty_space:
-        match = whitespace_newline_re.match(data)
-        if match and match.end(0) == len(data):
-          return
-
+      elif self.remove_empty_space and data.isspace() and (
+          '\n' in data or '\r' in data):
+        return
 
       # if we're in the title, remove leading and trailing whitespace.
       # note that the title may be parsed in chunks if entityref's or charrefs
@@ -325,12 +314,11 @@ class HTMLMinParser(HTMLParser):
         self.__title_trailing_whitespace = data[-1].isspace()
         if self._title_newly_opened:
           self._title_newly_opened = False
-          data = leading_trailing_whitespace_re.sub('', data)
+          data = data.strip()
         else:
-          data = trailing_whitespace_re.sub(
-            '', leading_whitespace_re.sub(' ', data))
+          data = data.rstrip()
 
-      data = whitespace_re.sub(' ', data)
+      data = re.sub(r'\s+', ' ', data)
       if not data:
         return
 
