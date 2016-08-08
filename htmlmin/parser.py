@@ -125,34 +125,31 @@ class HTMLMinParser(HTMLParser):
     last_quoted = -1
     last_no_slash = -1
 
+    if self.reduce_boolean_attributes:
+      bool_attrs = (BOOLEAN_ATTRIBUTES.get(tag, ()), BOOLEAN_ATTRIBUTES['*'])
+      reduce_boolean = lambda k: k in bool_attrs[0] or k in bool_attrs[1]
+    else:
+      reduce_boolean = lambda k: False
+
     attrs = list(attrs)  # We're modifying it in place
     for i, (k, v) in enumerate(attrs):
       k = escape.escape_attr_name(k)
-      if v:
-        if self.reduce_boolean_attributes and (
-            k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
-            k in BOOLEAN_ATTRIBUTES['*']):
-          # For our use case, we treat boolean attributes as quoted because they
-          # don't require space between them and "/>" in closing tags.
-          attrs[i] = k
-          last_quoted = i
-        else:
-          (v, q) = escape.escape_attr_value(
-            v, double_quote=not self.remove_optional_attribute_quotes)
-          if q == escape.NO_QUOTES:
-            attrs[i] = '%s=%s' % (k, v)
-            if v[-1] != '/':
-              last_no_slash = i
-          elif q == escape.DOUBLE_QUOTE:
-            attrs[i] = '%s="%s"' % (k, v)
-            last_quoted = i
-          else:  # SINGLE_QUOTE
-            attrs[i] = "%s='%s'" % (k, v)
-            last_quoted = i
-      elif self.reduce_empty_attributes:
+      if (not v and self.reduce_empty_attributes) or reduce_boolean(k):
+        # For our use case, we treat boolean attributes as quoted because they
+        # don't require space between them and "/>" in closing tags.
         attrs[i] = k
+        last_quoted = i
       else:
-        attrs[i] = '%s=""' % k
+        (v, q) = escape.escape_attr_value(
+          v, double_quote=not self.remove_optional_attribute_quotes)
+        if q == escape.NO_QUOTES:
+          attrs[i] = '%s=%s' % (k, v)
+          if v[-1] != '/':
+            last_no_slash = i
+        else:
+          q = '"' if q == escape.DOUBLE_QUOTE else "'"
+          attrs[i] = '%s=%s%s%s' % (k, q, v, q)
+          last_quoted = i
 
     # 1. If there are no attributes, no additional space is necessary.
     # 2. If last attribute is quoted, no additional space is necessary.
