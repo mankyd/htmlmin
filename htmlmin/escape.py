@@ -25,6 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import re
+
 try:
   from html import escape
 except ImportError:
@@ -59,10 +61,9 @@ def escape_attr_value(val, double_quote=False):
       return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
     else:
       return (val, SINGLE_QUOTE)
-  elif "'" in val:
-    return (val, DOUBLE_QUOTE)
 
-  if not val or any((c.isspace() for c in val)):
+  # https://www.w3.org/TR/html5/syntax.html#attributes-0
+  if not val or re.search("['<=>`\0-\40]", val):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 
