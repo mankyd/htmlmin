@@ -56,14 +56,21 @@ def escape_attr_value(val, double_quote=False):
   has_html_tag = '<' in val or '>' in val
   if double_quote:
     return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
-  if '"' in val or has_html_tag:
-    if "'" in val or has_html_tag:
-      return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
+
+  dq = sq = 0
+  for ch in val:
+    if ch == '"':
+      dq += 1
+    elif ch == "'":
+      sq += 1
+  if dq or sq:
+    if dq <= sq:
+      return (val.replace('"', '&#%d;' % ord('"')), DOUBLE_QUOTE)
     else:
-      return (val, SINGLE_QUOTE)
+      return (val.replace("'", '&#%d;' % ord("'")), SINGLE_QUOTE)
 
   # https://www.w3.org/TR/html5/syntax.html#attributes-0
-  if not val or re.search("['<=>`\0-\40]", val):
+  if not val or re.search('[<=>`\0-\40]', val):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 
