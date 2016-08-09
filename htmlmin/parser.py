@@ -114,9 +114,8 @@ class HTMLMinParser(HTMLParser):
 
     if self.reduce_boolean_attributes:
       bool_attrs = (BOOLEAN_ATTRIBUTES.get(tag, ()), BOOLEAN_ATTRIBUTES['*'])
-      reduce_boolean = lambda k: k in bool_attrs[0] or k in bool_attrs[1]
     else:
-      reduce_boolean = lambda k: False
+      bool_attrs = False
 
     attrs = list(attrs)  # We're modifying it in place
     last_quoted = last_no_slash = i = -1
@@ -129,7 +128,7 @@ class HTMLMinParser(HTMLParser):
       i += 1
       k = escape.escape_attr_name(k)
       if (v is None or (not v and self.reduce_empty_attributes) or
-          reduce_boolean(k)):
+          (bool_attrs and (k in bool_attrs[0] or k in bool_attrs[1]))):
         # For our use case, we treat boolean attributes as quoted because they
         # don't require space between them and "/>" in closing tags.
         attrs[i] = k
