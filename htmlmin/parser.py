@@ -109,15 +109,8 @@ class HTMLMinParser(HTMLParser):
     self._title_newly_opened = False
     self.__title_trailing_whitespace = False
 
-  def _has_pre(self, attrs):
-    for k,v in attrs:
-      if k == self.pre_attr:
-        return True
-    return False
-
   def build_tag(self, tag, attrs, close_tag):
-    last_quoted = -1
-    last_no_slash = -1
+    has_pre = False
 
     if self.reduce_boolean_attributes:
       bool_attrs = (BOOLEAN_ATTRIBUTES.get(tag, ()), BOOLEAN_ATTRIBUTES['*'])
@@ -126,7 +119,14 @@ class HTMLMinParser(HTMLParser):
       reduce_boolean = lambda k: False
 
     attrs = list(attrs)  # We're modifying it in place
-    for i, (k, v) in enumerate(attrs):
+    last_quoted = last_no_slash = i = -1
+    for k, v in attrs:
+      if k == self.pre_attr:
+        has_pre = True
+        if not self.keep_pre:
+          continue
+
+      i += 1
       k = escape.escape_attr_name(k)
       if (v is None or (not v and self.reduce_empty_attributes) or
           reduce_boolean(k)):
@@ -145,6 +145,10 @@ class HTMLMinParser(HTMLParser):
           q = '"' if q == escape.DOUBLE_QUOTE else "'"
           attrs[i] = '%s=%s%s%s' % (k, q, v, q)
           last_quoted = i
+
+    i += 1
+    if i != len(attrs):
+      del attrs[i:]
 
     # 1. If there are no attributes, no additional space is necessary.
     # 2. If last attribute is quoted, no additional space is necessary.
@@ -169,11 +173,11 @@ class HTMLMinParser(HTMLParser):
           attrs.append(attrs[i])
           del attrs[i]
 
-    return '<%s%s%s%s%s>' % (escape.escape_tag(tag),
-                             ' ' if attrs else '',
-                             ' '.join(attrs),
-                             space_maybe,
-                             '/' if close_tag else '')
+    return has_pre, '<%s%s%s%s%s>' % (escape.escape_tag(tag),
+                                      ' ' if attrs else '',
+                                      ' '.join(attrs),
+                                      space_maybe,
+                                      '/' if close_tag else '')
 
   def handle_decl(self, decl):
     if len(self._data_buffer) == 1 and self._data_buffer[0][0].isspace():
@@ -235,20 +239,16 @@ class HTMLMinParser(HTMLParser):
         self._in_pre_tag -= self._close_tags_up_to(t[0])
         break
 
+    has_pre, data = self.build_tag(tag, attrs, False)
+
     start_pre = False
-    if (tag in self.pre_tags or
-        tag in ('script', 'style') or
-        self._has_pre(attrs) or
-        self._in_pre_tag > 0):
+    if (has_pre or self._in_pre_tag > 0 or
+        tag == 'script' or tag == 'style' or tag in self.pre_tags):
       self._in_pre_tag += 1
       start_pre = True
 
     self._tag_stack.insert(0, (tag, start_pre))
-
-    if not self.keep_pre:
-      attrs = [(k,v) for k,v in attrs if k != self.pre_attr]
-
-    self._data_buffer.append(self.build_tag(tag, attrs, False))
+    self._data_buffer.append(data)
 
   def handle_endtag(self, tag):
     # According to the spec, <p> tags don't get closed when a parent a
@@ -284,9 +284,8 @@ class HTMLMinParser(HTMLParser):
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False
-    if not self.keep_pre:
-      attrs = [(k,v) for k,v in attrs if k != 'pre']
-    self._data_buffer.append(self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS))
+    _, data = self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)
+    self._data_buffer.append(data)
 
   def handle_comment(self, data):
     if not self.remove_comments or re.match(r'^(?:!|\[if\s)', data):
