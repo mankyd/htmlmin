@@ -181,12 +181,6 @@ class HTMLMinParser(HTMLParser):
     self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
 
-  def in_tag(self, *tags):
-    for t in self._tag_stack:
-      if t[0] in tags:
-        return t
-    return False
-
   def _close_tags_up_to(self, tag):
     num_pres = 0
     i = 0
@@ -205,6 +199,27 @@ class HTMLMinParser(HTMLParser):
 
     return num_pres
 
+  _TAG_SETS = {  # a list of tags and tags that they are closed by
+    'li': ('li',),
+    'dd': ('dd', 'dt'),
+    'rp': ('rp', 'rt'),
+    'p': ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl',
+          'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section',
+          'table', 'ul'),
+    'optgroup': ('optgroup',),
+    'option': ('option', 'optgroup'),
+    'colgroup': '*',
+    'tbody': ('tbody', 'tfoot'),
+    'tfoot': ('tbody',),
+    'tr': ('tr',),
+    'td': ('td', 'th'),
+  }
+  _TAG_SETS['dt'] = _TAG_SETS['dd']
+  _TAG_SETS['rt'] = _TAG_SETS['rp']
+  _TAG_SETS['thead'] = _TAG_SETS['tbody']
+  _TAG_SETS['th'] = _TAG_SETS['td']
+
   def handle_starttag(self, tag, attrs):
     self._after_doctype = False
     if tag == 'head':
@@ -213,26 +228,12 @@ class HTMLMinParser(HTMLParser):
       self._in_title = True
       self._title_newly_opened = True
 
-    tag_sets = ( # a list of tags and tags that they are closed by
-      (('li',), ('li',)),
-      (('dd', 'dt',), ('dd', 'dt',)),
-      (('rp', 'rt',), ('rp', 'rt',)),
-      (('p',), ('address', 'article', 'aside', 'blockquote', 'dir', 'div',
-                'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4',
-                'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p',
-                'pre', 'section', 'table', 'ul')),
-      (('optgroup',), ('optgroup',)),
-      (('option',), ('option', 'optgroup')),
-      (('colgroup',), ('*',)),
-      (('tbody', 'thead',), ('tbody', 'tfoot')),
-      (('tfoot',), ('tbody',)),
-      (('tr',), ('tr',)),
-      (('td', 'th'), ('td', 'th')),
-      )
-    for open_tags, closed_by_tags in tag_sets:
-      in_tag = self.in_tag(*open_tags)
-      if in_tag and (tag in closed_by_tags or '*' in closed_by_tags):
-        self._in_pre_tag -= self._close_tags_up_to(in_tag[0])
+    tag_sets = self._TAG_SETS
+    for t in self._tag_stack:
+      closed_by_tags = tag_sets.get(t[0])
+      if closed_by_tags and (closed_by_tags == '*' or tag in closed_by_tags):
+        self._in_pre_tag -= self._close_tags_up_to(t[0])
+        break
 
     start_pre = False
     if (tag in self.pre_tags or
