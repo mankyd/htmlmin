@@ -207,6 +207,12 @@ FEATURES_TEXTS = {
     '<body>    <y />   <x    /></body>',
     '<body> <y/> <x/></body>',
   ),
+  'remove_redundant_lang_0': (
+    ('<html><body lang=en><p lang=en>This is an example.'
+     '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
+    ('<html><body lang=en><p>This is an example.'
+     '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
+  ),
 }
 
 SELF_CLOSE_TEXTS = {
@@ -333,14 +339,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 9392)
+    self.assertEqual(len(inp) - len(out), 9408)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 12506)
+    self.assertEqual(len(inp) - len(out), 12522)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS

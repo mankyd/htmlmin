@@ -109,6 +109,10 @@ class HTMLMinParser(HTMLParser):
     self._title_newly_opened = False
     self.__title_trailing_whitespace = False
 
+  @property
+  def _tag_lang(self):
+    return self._tag_stack[0][2] if self._tag_stack else None
+
   def build_tag(self, tag, attrs, close_tag):
     has_pre = False
 
@@ -117,12 +121,17 @@ class HTMLMinParser(HTMLParser):
     else:
       bool_attrs = False
 
+    lang = self._tag_lang
     attrs = list(attrs)  # We're modifying it in place
     last_quoted = last_no_slash = i = -1
     for k, v in attrs:
       if k == self.pre_attr:
         has_pre = True
         if not self.keep_pre:
+          continue
+      elif k == 'lang':
+        lang = v
+        if v == self._tag_lang:
           continue
 
       i += 1
@@ -176,7 +185,7 @@ class HTMLMinParser(HTMLParser):
                                       ' ' if attrs else '',
                                       ' '.join(attrs),
                                       space_maybe,
-                                      '/' if close_tag else '')
+                                      '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
     if len(self._data_buffer) == 1 and self._data_buffer[0][0].isspace():
@@ -238,7 +247,7 @@ class HTMLMinParser(HTMLParser):
         self._in_pre_tag -= self._close_tags_up_to(t[0])
         break
 
-    has_pre, data = self.build_tag(tag, attrs, False)
+    has_pre, data, lang = self.build_tag(tag, attrs, False)
 
     start_pre = False
     if (has_pre or self._in_pre_tag > 0 or
@@ -246,7 +255,7 @@ class HTMLMinParser(HTMLParser):
       self._in_pre_tag += 1
       start_pre = True
 
-    self._tag_stack.insert(0, (tag, start_pre))
+    self._tag_stack.insert(0, (tag, start_pre, lang))
     self._data_buffer.append(data)
 
   def handle_endtag(self, tag):
@@ -283,7 +292,7 @@ class HTMLMinParser(HTMLParser):
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False
-    _, data = self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)
+    data = self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)[1]
     self._data_buffer.append(data)
 
   def handle_comment(self, data):
