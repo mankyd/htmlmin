@@ -278,7 +278,7 @@ class HTMLMinParser(HTMLParser):
     if not self.remove_comments or (
         data and (data[0] == '!' or re.match(r'^\[if\s', data))):
       self._data_buffer.append('<!--{}-->'.format(
-          data[1:] if data[0] == '!' else data))
+          data[1:] if len(data) and data[0] == '!' else data))
 
   def handle_data(self, data):
     if self._in_pre_tag > 0:
