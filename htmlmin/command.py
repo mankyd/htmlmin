@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Copyright (c) 2013, Dave Mankoff
 All rights reserved.
@@ -25,11 +26,10 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-#!/usr/bin/env python
-
 import argparse
 import codecs
 import locale
+import io
 import sys
 
 #import htmlmin
@@ -134,9 +134,10 @@ tags are always left unmininfied.
   nargs='*',
   default=['pre', 'textarea'])
 parser.add_argument('-e', '--encoding',
-
-  help=("Encoding to read and write with. Default 'utf-8'.\n\n"),
-  default='utf-8',
+  help=("Encoding to read and write with. Default 'utf-8'."
+        " When reading from stdin, attempts to use the system's"
+        " encoding before defaulting to utf-8.\n\n"),
+  default=None,
   )
 
 def main():
@@ -149,20 +150,25 @@ def main():
     keep_pre=args.keep_pre_attr,
     pre_attr=args.pre_attr,
     )
+  default_encoding = args.encoding or 'utf-8'
+
   if args.input_file:
-    inp = codecs.open(args.input_file, encoding=args.encoding)
+    inp = codecs.open(args.input_file, encoding=default_encoding)
   else:
-    inp = codecs.getreader(
-      sys.stdin.encoding or locale.getpreferredencoding())(sys.stdin)
+    encoding = args.encoding or sys.stdin.encoding \
+      or locale.getpreferredencoding() or default_encoding
+    inp = io.open(sys.stdin.fileno(), encoding=encoding)
 
   for line in inp.readlines():
     minifier.input(line)
 
   if args.output_file:
     codecs.open(
-      args.output_file, 'w', encoding=args.encoding).write(minifier.output)
+      args.output_file, 'w', encoding=default_encoding).write(minifier.output)
   else:
-    print(minifier.output)
+    encoding = args.encoding or sys.stdout.encoding \
+      or locale.getpreferredencoding() or default_encoding
+    io.open(sys.stdout.fileno(), 'w', encoding=encoding).write(minifier.output)
 
 if __name__ == '__main__':
   main()
