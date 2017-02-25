@@ -51,10 +51,11 @@ def escape_attr_name(val):
 
 def escape_attr_value(val, double_quote=False):
   val = escape_ambiguous_ampersand(val)
+  has_html_tag = '<' in val or '>' in val
   if double_quote:
     return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
-  if '"' in val:
-    if "'" in val:
+  if '"' in val or has_html_tag:
+    if "'" in val or has_html_tag:
       return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
     else:
       return (val, SINGLE_QUOTE)

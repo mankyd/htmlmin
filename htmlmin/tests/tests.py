@@ -139,6 +139,16 @@ FEATURES_TEXTS = {
     '<img width="100" height="50" src="#something" />',
     '<img width="100" height="50" src="#something">',
   ),
+  'remove_optional_attribute_quotes': (
+    (
+      '<td data-text="&lt;script&gt;alert(\'123\');&lt;/script&gt;">',
+      '<td data-text="<script>alert(\'123\');</script>">',
+    ),
+    (
+      '<td data-text="&lt;script&gt;alert(123);&lt;/script&gt;">',
+      '<td data-text="<script>alert(123);</script>">',
+    ),
+  ),
   'keep_pre_attribute': (
     '<body>the <strong pre   style="">pre</strong> should stay  </body>',
     '<body>the <strong pre style>pre</strong> should stay </body>',
@@ -387,6 +397,11 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_keep_optional_attribute_quotes(self):
     text = self.__reference_texts__['keep_optional_attribute_quotes']
     self.assertEqual(htmlmin.minify(text[0], remove_optional_attribute_quotes=False), text[1])
+
+  def test_remove_optional_attribute_quotes(self):
+    texts = self.__reference_texts__['remove_optional_attribute_quotes']
+    for text in texts:
+      self.assertEqual(htmlmin.minify(text[0], remove_optional_attribute_quotes=True), text[1])
 
   def test_keep_pre_attribute(self):
     text = self.__reference_texts__['keep_pre_attribute']
