@@ -123,6 +123,10 @@ FEATURES_TEXTS = {
     '<body> this text should <!--! not --> have comments removed</body>',
     '<body> this text should <!-- not --> have comments removed</body>',
   ),
+  'keep_empty_comments': (
+    '<body> this text should not<!----> have empty comments removed</body>',
+    '<body> this text should not<!----> have empty comments removed</body>',
+  ),
   'keep_conditional_comments': (
     '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
     '<body>keep IE conditional styles <!--[if IE8]><style>h1 {color: red;}</style><![endif]--></body>',
@@ -367,6 +371,10 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_keep_comments(self):
     text = self.__reference_texts__['keep_comments']
     self.assertEqual(htmlmin.minify(text[0], remove_comments=True), text[1])
+
+  def test_keep_empty_comments(self):
+    text = self.__reference_texts__['keep_empty_comments']
+    self.assertEqual(htmlmin.minify(text[0]), text[1])
 
   def test_keep_conditional_comments(self):
     text = self.__reference_texts__['keep_conditional_comments']
