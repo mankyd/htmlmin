@@ -14,7 +14,7 @@ setup(
     license='BSD',
     description='An HTML Minifier',
     long_description=README,
-    url='https://htmlmin.readthedocs.org/en/latest/',
+    url='https://htmlmin.readthedocs.io/en/latest/',
     download_url='https://github.com/mankyd/htmlmin',
     author='Dave Mankoff',
     author_email='mankyd@gmail.com',
