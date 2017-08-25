@@ -49,7 +49,7 @@ NINE = ord('9')
 
 
 # https://www.w3.org/TR/html5/syntax.html#attributes-0
-chars_to_quote_re = re.compile(u'[\x20\x09\x0a\x0c\x0d=><`]')
+CHARS_TO_QUOTE_RE = re.compile(u'[\x20\x09\x0a\x0c\x0d=><`]')
 
 def escape_tag(val):
   return escape(val)
@@ -75,7 +75,7 @@ def escape_attr_value(val, double_quote=False):
   elif single_quote_count:
     return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
 
-  if not val or chars_to_quote_re.search(val):
+  if not val or CHARS_TO_QUOTE_RE.search(val):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 

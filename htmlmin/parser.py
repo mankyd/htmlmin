@@ -36,6 +36,16 @@ except ImportError:
 
 from . import escape
 
+# https://www.w3.org/TR/html5/single-page.html#space-character
+HTML_SPACE_RE = re.compile('[\x20\x09\x0a\x0c\x0d]+')
+HTML_ALL_SPACE_RE = re.compile('^[\x20\x09\x0a\x0c\x0d]+$')
+HTML_LEADING_SPACE_RE = re.compile(
+  '^[\x20\x09\x0a\x0c\x0d]+')
+HTML_TRAILING_SPACE_RE = re.compile(
+  '[\x20\x09\x0a\x0c\x0d]+$')
+HTML_LEADING_TRAILING_SPACE_RE = re.compile(
+  '(^[\x20\x09\x0a\x0c\x0d]+)|([\x20\x09\x0a\x0c\x0d]+$)')
+
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 # http://www.w3.org/TR/html51/syntax.html#elements-0
 NO_CLOSE_TAGS = ('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
@@ -43,29 +53,51 @@ NO_CLOSE_TAGS = ('area', 'base', 'br', 'col', 'command', 'embed', 'hr', 'img',
                  'wbr')
 # http://www.w3.org/TR/html51/index.html#attributes-1
 BOOLEAN_ATTRIBUTES = {
-  'audio': ('autoplay', 'controls', 'loop', 'muted',),
-  'button': ('autofocus', 'disabled', 'formnovalidate',),
-  'command': ('checked', 'disabled',),
-  'dialog': ('open',),
-  'fieldset': ('disabled',),
-  'form': ('novalidate',),
-  'iframe': ('seamless',),
-  'img': ('ismap',),
-  'input': ('autofocus', 'checked', 'disabled', 'formnovalidate', 'multiple',
-            'readonly', 'required',),
-  'keygen': ('autofocus', 'disabled',),
-  'object': ('typesmustmatch',),
-  'ol': ('reversed',),
-  'optgroup': ('disabled',),
-  'option': ('disabled', 'selected',),
-  'script': ('async', 'defer'),
-  'select': ('autofocus', 'disabled', 'multiple', 'required',),
-  'style': ('scoped',),
-  'textarea': ('autofocus', 'disabled', 'readonly', 'required',),
-  'track': ('default',),
-  'video': ('autoplay', 'controls', 'loop', 'muted',),
+  'audio': ('autoplay', 'controls', 'hidden', 'loop', 'muted',),
+  'button': ('autofocus', 'disabled', 'formnovalidate', 'hidden',),
+  'command': ('checked', 'disabled', 'hidden'),
+  'dialog': ('hidden', 'open',),
+  'fieldset': ('disabled', 'hidden',),
+  'form': ('hidden', 'novalidate',),
+  'iframe': ('hidden', 'seamless',),
+  'img': ('hidden', 'ismap',),
+  'input': ('autofocus', 'checked', 'disabled', 'formnovalidate', 'hidden', 
+            'multiple', 'readonly', 'required',),
+  'keygen': ('autofocus', 'disabled', 'hidden',),
+  'object': ('hidden', 'typesmustmatch',),
+  'ol': ('hidden', 'reversed',),
+  'optgroup': ('disabled', 'hidden',),
+  'option': ('disabled', 'hidden', 'selected',),
+  'script': ('async', 'defer', 'hidden',),
+  'select': ('autofocus', 'disabled', 'hidden', 'multiple', 'required',),
+  'style': ('hidden', 'scoped',),
+  'textarea': ('autofocus', 'disabled', 'hidden', 'readonly', 'required',),
+  'track': ('default', 'hidden', ),
+  'video': ('autoplay', 'controls', 'hidden', 'loop', 'muted',),
   '*': ('hidden',),
 }
+
+# a list of tags and tags that they are closed by
+TAG_SETS = {
+  'li': ('li',),
+  'dd': ('dd', 'dt'),
+  'rp': ('rp', 'rt'),
+  'p': ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl',
+        'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+        'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section',
+        'table', 'ul'),
+  'optgroup': ('optgroup',),
+  'option': ('option', 'optgroup'),
+  'colgroup': '*',
+  'tbody': ('tbody', 'tfoot'),
+  'tfoot': ('tbody',),
+  'tr': ('tr',),
+  'td': ('td', 'th'),
+}
+TAG_SETS['dt'] = TAG_SETS['dd']
+TAG_SETS['rt'] = TAG_SETS['rp']
+TAG_SETS['thead'] = TAG_SETS['tbody']
+TAG_SETS['th'] = TAG_SETS['td']
 
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
@@ -109,7 +141,6 @@ class HTMLMinParser(HTMLParser):
     self._title_newly_opened = False
     self.__title_trailing_whitespace = False
 
-  @property
   def _tag_lang(self):
     return self._tag_stack[0][2] if self._tag_stack else None
 
@@ -117,11 +148,11 @@ class HTMLMinParser(HTMLParser):
     has_pre = False
 
     if self.reduce_boolean_attributes:
-      bool_attrs = (BOOLEAN_ATTRIBUTES.get(tag, ()), BOOLEAN_ATTRIBUTES['*'])
+      bool_attrs = BOOLEAN_ATTRIBUTES.get(tag, BOOLEAN_ATTRIBUTES['*'])
     else:
       bool_attrs = False
 
-    lang = self._tag_lang
+    lang = self._tag_lang()
     attrs = list(attrs)  # We're modifying it in place
     last_quoted = last_no_slash = i = -1
     for k, v in attrs:
@@ -131,13 +162,13 @@ class HTMLMinParser(HTMLParser):
           continue
       elif k == 'lang':
         lang = v
-        if v == self._tag_lang:
+        if v == self._tag_lang():
           continue
 
       i += 1
       k = escape.escape_attr_name(k)
       if (v is None or (not v and self.reduce_empty_attributes) or
-          (bool_attrs and (k in bool_attrs[0] or k in bool_attrs[1]))):
+          (bool_attrs and k in bool_attrs)):
         # For our use case, we treat boolean attributes as quoted because they
         # don't require space between them and "/>" in closing tags.
         attrs[i] = k
@@ -188,7 +219,8 @@ class HTMLMinParser(HTMLParser):
                                       '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
-    if len(self._data_buffer) == 1 and self._data_buffer[0][0].isspace():
+    if (len(self._data_buffer) == 1 and 
+        HTML_SPACE_RE.match(self._data_buffer[0][0])):
       self._data_buffer = []
     self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
@@ -211,27 +243,6 @@ class HTMLMinParser(HTMLParser):
 
     return num_pres
 
-  _TAG_SETS = {  # a list of tags and tags that they are closed by
-    'li': ('li',),
-    'dd': ('dd', 'dt'),
-    'rp': ('rp', 'rt'),
-    'p': ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl',
-          'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-          'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section',
-          'table', 'ul'),
-    'optgroup': ('optgroup',),
-    'option': ('option', 'optgroup'),
-    'colgroup': '*',
-    'tbody': ('tbody', 'tfoot'),
-    'tfoot': ('tbody',),
-    'tr': ('tr',),
-    'td': ('td', 'th'),
-  }
-  _TAG_SETS['dt'] = _TAG_SETS['dd']
-  _TAG_SETS['rt'] = _TAG_SETS['rp']
-  _TAG_SETS['thead'] = _TAG_SETS['tbody']
-  _TAG_SETS['th'] = _TAG_SETS['td']
-
   def handle_starttag(self, tag, attrs):
     self._after_doctype = False
     if tag == 'head':
@@ -240,9 +251,8 @@ class HTMLMinParser(HTMLParser):
       self._in_title = True
       self._title_newly_opened = True
 
-    tag_sets = self._TAG_SETS
     for t in self._tag_stack:
-      closed_by_tags = tag_sets.get(t[0])
+      closed_by_tags = TAG_SETS.get(t[0])
       if closed_by_tags and (closed_by_tags == '*' or tag in closed_by_tags):
         self._in_pre_tag -= self._close_tags_up_to(t[0])
         break
@@ -307,10 +317,10 @@ class HTMLMinParser(HTMLParser):
       # remove_all_empty_space matches everything. remove_empty_space only
       # matches if there's a newline involved.
       if self.remove_all_empty_space or self._in_head or self._after_doctype:
-        if data.isspace():
+        if HTML_ALL_SPACE_RE.match(data):
           return
-      elif self.remove_empty_space and data.isspace() and (
-          '\n' in data or '\r' in data):
+      elif (self.remove_empty_space and HTML_ALL_SPACE_RE.match(data) and
+            ('\n' in data or '\r' in data)):
         return
 
       # if we're in the title, remove leading and trailing whitespace.
@@ -319,14 +329,16 @@ class HTMLMinParser(HTMLParser):
       if self._in_title:
         if self.__title_trailing_whitespace:
           self._data_buffer.append(' ')
-        self.__title_trailing_whitespace = data[-1].isspace()
+        self.__title_trailing_whitespace = (
+          HTML_ALL_SPACE_RE.match(data[-1]) is not None)
         if self._title_newly_opened:
           self._title_newly_opened = False
-          data = data.strip()
+          data = HTML_LEADING_TRAILING_SPACE_RE.sub('', data)
         else:
-          data = data.rstrip()
+          data = HTML_TRAILING_SPACE_RE.sub(
+            '', HTML_LEADING_TRAILING_SPACE_RE.sub(' ', data))
 
-      data = re.sub(r'\s+', ' ', data)
+      data = HTML_SPACE_RE.sub(' ', data)
       if not data:
         return
 
