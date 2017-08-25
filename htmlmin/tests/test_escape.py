@@ -61,8 +61,10 @@ class TestEscapeAttributes(unittest.TestCase):
     self.assertDoubleQuote(" foobar ", " foobar ")
     self.assertDoubleQuote("", "")
 
-  def test_quote_equal(self):
+  def test_quote_unsafe_chars(self):
     self.assertDoubleQuote("width=device-width", "width=device-width")
+    self.assertDoubleQuote("<sinister-brackets>", "<sinister-brackets>")
+    self.assertDoubleQuote("`", "`")
 
   def test_force_double_quote(self):
     result = escape.escape_attr_value("foobar", double_quote=True)

@@ -45,6 +45,8 @@ LOWER_Z = ord('z')
 ZERO = ord('0')
 NINE = ord('9')
 
+chars_to_escape_re = re.compile(r'[=><`]')
+
 def escape_tag(val):
   return escape(val)
 
@@ -64,7 +66,8 @@ def escape_attr_value(val, double_quote=False):
   elif "'" in val:
     return (val, DOUBLE_QUOTE)
 
-  if not val or any((c.isspace() for c in val)) or re.search(r"[=><`]", val):
+  if (not val or any((c.isspace() for c in val)) or 
+      chars_to_escape_re.search(val)):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 
