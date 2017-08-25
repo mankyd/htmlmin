@@ -66,7 +66,7 @@ test command runs project's unit tests without actually deploying it, by
   ),
   'with_doctype': (
     '\n\n<!DOCTYPE html>\n\n<body>   X   Y   </body>',
-    '<!DOCTYPE html>\n<body> X Y </body>'
+    '<!DOCTYPE html><body> X Y </body>'
   ),
 }
 
@@ -75,9 +75,15 @@ FEATURES_TEXTS = {
     '<body  >  <div id="x" style="   abc " data-a=b></div></  body>  ',
     '<body> <div id=x style="   abc " data-a=b></div></body> ',
   ),
-  'remove_quotes_keep_quote_trailing_slash_last': (
+  'remove_quotes_drop_trailing_slash': (
     '<div x="x/" y="y/"></div>',
-    '<div x=x/ y=y/ ></div>',  # NOTE the single space at the end, inserted to not make this a self-closing tag
+    # Note: According to https://github.com/mankyd/htmlmin/pull/12 older version
+    # of WebKit would erroneously interpret "<... y=y/>" as self-closing tag.
+    '<div x=x/ y=y/ ></div>',
+  ),
+  'remove_quotes_keep_space_before_slash': (
+    '<foo x="x/"/>',
+    '<foo x=x/ />',  # NOTE: Space added so self-closing tag is parsed as such.
   ),
   'remove_single_quotes': (
     '<body><div thing=\'what\'></div></body> ',
@@ -200,6 +206,12 @@ FEATURES_TEXTS = {
   'remove_space_from_self_closed_tags': (
     '<body>    <y />   <x    /></body>',
     '<body> <y/> <x/></body>',
+  ),
+  'remove_redundant_lang_0': (
+    ('<html><body lang=en><p lang=en>This is an example.'
+     '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
+    ('<html><body lang=en><p>This is an example.'
+     '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
   ),
 }
 
@@ -327,14 +339,14 @@ class TestMinifyFunction(HTMLMinTestCase):
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 9383)
+    self.assertEqual(len(inp) - len(out), 9408)
 
   def test_high_minification_quality(self):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
     out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 12497)
+    self.assertEqual(len(inp) - len(out), 12522)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS

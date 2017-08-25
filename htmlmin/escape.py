@@ -25,6 +25,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
+import re
+
 try:
   from html import escape
 except ImportError:
@@ -45,7 +47,9 @@ LOWER_Z = ord('z')
 ZERO = ord('0')
 NINE = ord('9')
 
-chars_to_escape_re = re.compile(r'[=><`]')
+
+# https://www.w3.org/TR/html5/syntax.html#attributes-0
+chars_to_quote_re = re.compile(u'[\x20\x09\x0a\x0c\x0d=><`]')
 
 def escape_tag(val):
   return escape(val)
@@ -58,16 +62,20 @@ def escape_attr_value(val, double_quote=False):
   has_html_tag = '<' in val or '>' in val
   if double_quote:
     return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
-  if '"' in val or has_html_tag:
-    if "'" in val or has_html_tag:
-      return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
-    else:
-      return (val, SINGLE_QUOTE)
-  elif "'" in val:
-    return (val, DOUBLE_QUOTE)
 
-  if (not val or any((c.isspace() for c in val)) or 
-      chars_to_escape_re.search(val)):
+  double_quote_count = 0
+  single_quote_count = 0
+  for ch in val:
+    if ch == '"':
+      double_quote_count += 1
+    elif ch == "'":
+      single_quote_count += 1
+  if double_quote_count > single_quote_count:
+    return (val.replace("'", '&#39;'), SINGLE_QUOTE)
+  elif single_quote_count:
+    return (val.replace('"', '&#34;'), DOUBLE_QUOTE)
+
+  if not val or chars_to_quote_re.search(val):
     return (val, DOUBLE_QUOTE)
   return (val, NO_QUOTES)
 

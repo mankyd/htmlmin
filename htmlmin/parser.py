@@ -28,8 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 from __future__ import unicode_literals
 import sys
 
-from io import StringIO
-
 import re
 try:
   from html.parser import HTMLParser
@@ -68,12 +66,6 @@ BOOLEAN_ATTRIBUTES = {
   'video': ('autoplay', 'controls', 'loop', 'muted',),
   '*': ('hidden',),
 }
-
-leading_whitespace_re = re.compile(r'^\s+')
-trailing_whitespace_re = re.compile(r'\s+$')
-leading_trailing_whitespace_re = re.compile(r'(^\s+)|(\s+$)')
-whitespace_re = re.compile(r'\s+')
-whitespace_newline_re = re.compile(r'\s*(\r|\n)+\s*')
 
 # Tag omission rules:
 # http://www.w3.org/TR/html51/syntax.html#optional-tags
@@ -117,62 +109,89 @@ class HTMLMinParser(HTMLParser):
     self._title_newly_opened = False
     self.__title_trailing_whitespace = False
 
-  def _has_pre(self, attrs):
-    for k,v in attrs:
-      if k == self.pre_attr:
-        return True
-    return False
+  @property
+  def _tag_lang(self):
+    return self._tag_stack[0][2] if self._tag_stack else None
 
   def build_tag(self, tag, attrs, close_tag):
-    result = StringIO()
-    result.write('<')
-    result.write(escape.escape_tag(tag))
-    needs_closing_space = False
-    for k,v in attrs:
-      result.write(' ')
-      result.write(escape.escape_attr_name(k))
-      if v:
-        if self.reduce_boolean_attributes and (
-             k in BOOLEAN_ATTRIBUTES.get(tag,[]) or
-             k in BOOLEAN_ATTRIBUTES['*']):
-          pass
-        else:
-          result.write('=')
-          (v, q) = escape.escape_attr_value(
-            v, double_quote=not self.remove_optional_attribute_quotes)
-          if q == escape.NO_QUOTES:
-            result.write(v)
-          elif q == escape.DOUBLE_QUOTE:
-            result.write('"')
-            result.write(v)
-            result.write('"')
-          else:  # SINGLE_QUOTE
-            result.write("'")
-            result.write(v)
-            result.write("'")
-          needs_closing_space = q == escape.NO_QUOTES and v.endswith('/')
-      elif not self.reduce_empty_attributes:
-        result.write('=""')
-    if needs_closing_space:
-      result.write(' ')
-    if close_tag:
-      result.write('/>')
+    has_pre = False
+
+    if self.reduce_boolean_attributes:
+      bool_attrs = (BOOLEAN_ATTRIBUTES.get(tag, ()), BOOLEAN_ATTRIBUTES['*'])
     else:
-      result.write('>')
-    return result.getvalue()
+      bool_attrs = False
+
+    lang = self._tag_lang
+    attrs = list(attrs)  # We're modifying it in place
+    last_quoted = last_no_slash = i = -1
+    for k, v in attrs:
+      if k == self.pre_attr:
+        has_pre = True
+        if not self.keep_pre:
+          continue
+      elif k == 'lang':
+        lang = v
+        if v == self._tag_lang:
+          continue
+
+      i += 1
+      k = escape.escape_attr_name(k)
+      if (v is None or (not v and self.reduce_empty_attributes) or
+          (bool_attrs and (k in bool_attrs[0] or k in bool_attrs[1]))):
+        # For our use case, we treat boolean attributes as quoted because they
+        # don't require space between them and "/>" in closing tags.
+        attrs[i] = k
+        last_quoted = i
+      else:
+        (v, q) = escape.escape_attr_value(
+          v, double_quote=not self.remove_optional_attribute_quotes)
+        if q == escape.NO_QUOTES:
+          attrs[i] = '%s=%s' % (k, v)
+          if v[-1] != '/':
+            last_no_slash = i
+        else:
+          q = '"' if q == escape.DOUBLE_QUOTE else "'"
+          attrs[i] = '%s=%s%s%s' % (k, q, v, q)
+          last_quoted = i
+
+    i += 1
+    if i != len(attrs):
+      del attrs[i:]
+
+    # 1. If there are no attributes, no additional space is necessary.
+    # 2. If last attribute is quoted, no additional space is necessary.
+    # 3. Two things are happening here:
+    #    a) according to the standard, <foo bar=baz/> should be treated as <foo
+    #       bar="baz/"> so space is necessary if this is self-closing tag,
+    #       however
+    #    b) reportedly (https://github.com/mankyd/htmlmin/pull/12), older
+    #       versions of WebKit interpret <foo bar=baz/> as self-closing tag so
+    #       we need the space if the last argument ends with a slash.
+    space_maybe = ''
+    if attrs:
+      needs_space = lambda last_attr: (last_attr[-1] not in '"\'' and
+                                       (close_tag or last_attr[-1] == '/'))
+      if needs_space(attrs[-1][-1]):
+        # If moving attributes around can help, do it.  Otherwise bite the
+        # bullet and put the space in.
+        i = last_no_slash if last_quoted == -1 else last_quoted
+        if i == -1 or needs_space(attrs[i]):
+          space_maybe = ' '
+        else:
+          attrs.append(attrs[i])
+          del attrs[i]
+
+    return has_pre, '<%s%s%s%s%s>' % (escape.escape_tag(tag),
+                                      ' ' if attrs else '',
+                                      ' '.join(attrs),
+                                      space_maybe,
+                                      '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
-    if (len(self._data_buffer) == 1 and
-        whitespace_re.match(self._data_buffer[0])):
+    if len(self._data_buffer) == 1 and self._data_buffer[0][0].isspace():
       self._data_buffer = []
-    self._data_buffer.append('<!' + decl + '>\n')
+    self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
-
-  def in_tag(self, *tags):
-    for t in self._tag_stack:
-      if t[0] in tags:
-        return t
-    return False
 
   def _close_tags_up_to(self, tag):
     num_pres = 0
@@ -192,6 +211,27 @@ class HTMLMinParser(HTMLParser):
 
     return num_pres
 
+  _TAG_SETS = {  # a list of tags and tags that they are closed by
+    'li': ('li',),
+    'dd': ('dd', 'dt'),
+    'rp': ('rp', 'rt'),
+    'p': ('address', 'article', 'aside', 'blockquote', 'dir', 'div', 'dl',
+          'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+          'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p', 'pre', 'section',
+          'table', 'ul'),
+    'optgroup': ('optgroup',),
+    'option': ('option', 'optgroup'),
+    'colgroup': '*',
+    'tbody': ('tbody', 'tfoot'),
+    'tfoot': ('tbody',),
+    'tr': ('tr',),
+    'td': ('td', 'th'),
+  }
+  _TAG_SETS['dt'] = _TAG_SETS['dd']
+  _TAG_SETS['rt'] = _TAG_SETS['rp']
+  _TAG_SETS['thead'] = _TAG_SETS['tbody']
+  _TAG_SETS['th'] = _TAG_SETS['td']
+
   def handle_starttag(self, tag, attrs):
     self._after_doctype = False
     if tag == 'head':
@@ -200,41 +240,23 @@ class HTMLMinParser(HTMLParser):
       self._in_title = True
       self._title_newly_opened = True
 
-    tag_sets = ( # a list of tags and tags that they are closed by
-      (('li',), ('li',)),
-      (('dd', 'dt',), ('dd', 'dt',)),
-      (('rp', 'rt',), ('rp', 'rt',)),
-      (('p',), ('address', 'article', 'aside', 'blockquote', 'dir', 'div',
-                'dl', 'fieldset', 'footer', 'form', 'h1', 'h2', 'h3', 'h4',
-                'h5', 'h6', 'header', 'hgroup', 'hr', 'menu', 'nav', 'ol', 'p',
-                'pre', 'section', 'table', 'ul')),
-      (('optgroup',), ('optgroup',)),
-      (('option',), ('option', 'optgroup')),
-      (('colgroup',), ('*',)),
-      (('tbody', 'thead',), ('tbody', 'tfoot')),
-      (('tfoot',), ('tbody',)),
-      (('tr',), ('tr',)),
-      (('td', 'th'), ('td', 'th')),
-      )
-    for open_tags, closed_by_tags in tag_sets:
-      in_tag = self.in_tag(*open_tags)
-      if in_tag and (tag in closed_by_tags or '*' in closed_by_tags):
-        self._in_pre_tag -= self._close_tags_up_to(in_tag[0])
+    tag_sets = self._TAG_SETS
+    for t in self._tag_stack:
+      closed_by_tags = tag_sets.get(t[0])
+      if closed_by_tags and (closed_by_tags == '*' or tag in closed_by_tags):
+        self._in_pre_tag -= self._close_tags_up_to(t[0])
+        break
+
+    has_pre, data, lang = self.build_tag(tag, attrs, False)
 
     start_pre = False
-    if (tag in self.pre_tags or
-        tag in ('script', 'style') or
-        self._has_pre(attrs) or
-        self._in_pre_tag > 0):
+    if (has_pre or self._in_pre_tag > 0 or
+        tag == 'script' or tag == 'style' or tag in self.pre_tags):
       self._in_pre_tag += 1
       start_pre = True
 
-    self._tag_stack.insert(0, (tag, start_pre))
-
-    if not self.keep_pre:
-      attrs = [(k,v) for k,v in attrs if k != self.pre_attr]
-
-    self._data_buffer.append(self.build_tag(tag, attrs, False))
+    self._tag_stack.insert(0, (tag, start_pre, lang))
+    self._data_buffer.append(data)
 
   def handle_endtag(self, tag):
     # According to the spec, <p> tags don't get closed when a parent a
@@ -270,13 +292,11 @@ class HTMLMinParser(HTMLParser):
 
   def handle_startendtag(self, tag, attrs):
     self._after_doctype = False
-    if not self.keep_pre:
-      attrs = [(k,v) for k,v in attrs if k != 'pre']
-    self._data_buffer.append(self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS))
+    data = self.build_tag(tag, attrs, tag not in NO_CLOSE_TAGS)[1]
+    self._data_buffer.append(data)
 
   def handle_comment(self, data):
-    if not self.remove_comments or (
-        data and (data[0] == '!' or re.match(r'^\[if\s', data))):
+    if not self.remove_comments or re.match(r'^(?:!|\[if\s)', data):
       self._data_buffer.append('<!--{}-->'.format(
           data[1:] if len(data) and data[0] == '!' else data))
 
@@ -287,14 +307,11 @@ class HTMLMinParser(HTMLParser):
       # remove_all_empty_space matches everything. remove_empty_space only
       # matches if there's a newline involved.
       if self.remove_all_empty_space or self._in_head or self._after_doctype:
-        match = whitespace_re.match(data)
-        if match and match.end(0) == len(data):
+        if data.isspace():
           return
-      elif self.remove_empty_space:
-        match = whitespace_newline_re.match(data)
-        if match and match.end(0) == len(data):
-          return
-
+      elif self.remove_empty_space and data.isspace() and (
+          '\n' in data or '\r' in data):
+        return
 
       # if we're in the title, remove leading and trailing whitespace.
       # note that the title may be parsed in chunks if entityref's or charrefs
@@ -305,12 +322,11 @@ class HTMLMinParser(HTMLParser):
         self.__title_trailing_whitespace = data[-1].isspace()
         if self._title_newly_opened:
           self._title_newly_opened = False
-          data = leading_trailing_whitespace_re.sub('', data)
+          data = data.strip()
         else:
-          data = trailing_whitespace_re.sub(
-            '', leading_whitespace_re.sub(' ', data))
+          data = data.rstrip()
 
-      data = whitespace_re.sub(' ', data)
+      data = re.sub(r'\s+', ' ', data)
       if not data:
         return
 

@@ -33,8 +33,7 @@ from htmlmin import escape
 class TestEscapeAttributes(unittest.TestCase):
   def assertQuotes(self, value, expected, quotes):
     result = escape.escape_attr_value(value)
-    self.assertEqual(expected, result[0])
-    self.assertEqual(quotes, result[1])
+    self.assertEqual((expected, quotes), result)
 
   def assertNoQuotes(self, value, expected):
     self.assertQuotes(value, expected, escape.NO_QUOTES)
@@ -73,6 +72,8 @@ class TestEscapeAttributes(unittest.TestCase):
 
   def test_both_quotes(self):
     self.assertDoubleQuote("foo'\"bar", "foo'&#34;bar")
+    self.assertDoubleQuote("foo''\"bar", "foo''&#34;bar")
+    self.assertSingleQuote("foo'\"\"bar", 'foo&#39;""bar')
 
   def test_ampersand_char_ref(self):
     self.assertNoQuotes('foo&bar', 'foo&amp;bar')
