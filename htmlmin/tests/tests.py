@@ -213,6 +213,18 @@ FEATURES_TEXTS = {
     ('<html><body lang=en><p>This is an example.'
      '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
   ),
+  'convert_charrefs': (
+    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
+     u'<input value="&#34;\'\'\'<.\u03c0> &#34;">',
+  ),
+  'convert_charrefs_false': (
+    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
+    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
+  ),
+  'dont_convert_pre_attr': (
+    '<input pre-value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
+    '<input value=&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;>',
+  ),
 }
 
 SELF_CLOSE_TEXTS = {
@@ -451,6 +463,11 @@ class TestMinifyFeatures(HTMLMinTestCase):
   def test_dont_minify_scripts_or_styles(self):
     text = self.__reference_texts__['dont_minify_scripts_or_styles']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=[]), text[1])
+
+  def test_convert_charrefs_false(self):
+    text = self.__reference_texts__['convert_charrefs_false']
+    self.assertEqual(htmlmin.minify(text[0], convert_charrefs=False), text[1])
+
 
 class TestSelfClosingTags(HTMLMinTestCase):
   __reference_texts__ = SELF_CLOSE_TEXTS

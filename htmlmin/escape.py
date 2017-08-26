@@ -104,7 +104,7 @@ def escape_ambiguous_ampersand(val):
         state = 2
       elif c == ';':
         if amp_buff:
-          result.append('&amp;')
+          result.append('&')
           result.extend(amp_buff)
           result.append(';')
         else:
@@ -132,7 +132,7 @@ def escape_ambiguous_ampersand(val):
         amp_buff.append(c)
       elif c == ';':
         if amp_buff:
-          result.append('&amp;#')
+          result.append('&#')
           result.extend(amp_buff)
           result.append(';')
         else:
@@ -165,7 +165,7 @@ def escape_ambiguous_ampersand(val):
         amp_buff.append(c)
       elif c == ';':
         if amp_buff:
-          result.append('&amp;#x')
+          result.append('&#x')
           result.extend(amp_buff)
           result.append(';')
         else:

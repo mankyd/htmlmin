@@ -96,6 +96,8 @@ class TestEscapeAttributes(unittest.TestCase):
   def test_ampersand_nonhex(self):
     self.assertNoQuotes('foo&#xz34f', 'foo&#xz34f')
 
+  def test_proper_char_refs(self):
+    self.assertNoQuotes('&pi;&#34;&#x34;', '&pi;&#34;&#x34;')
 
 def suite():
   return unittest.TestLoader().loadTestsFromTestCase(TestEscapeAttributes)

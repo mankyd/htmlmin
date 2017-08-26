@@ -26,6 +26,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 from __future__ import unicode_literals
+import logging
 import sys
 
 import re
@@ -114,6 +115,7 @@ class HTMLMinParser(HTMLParser):
                reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
+               convert_charrefs=True,
                keep_pre=False,
                pre_tags=PRE_TAGS,
                pre_attr='pre'):
@@ -131,6 +133,7 @@ class HTMLMinParser(HTMLParser):
     self.reduce_empty_attributes = reduce_empty_attributes
     self.reduce_boolean_attributes = reduce_boolean_attributes
     self.remove_optional_attribute_quotes = remove_optional_attribute_quotes
+    self.convert_charrefs = convert_charrefs
     self.pre_attr = pre_attr
     self._data_buffer = []
     self._in_pre_tag = 0
@@ -156,17 +159,23 @@ class HTMLMinParser(HTMLParser):
     attrs = list(attrs)  # We're modifying it in place
     last_quoted = last_no_slash = i = -1
     for k, v in attrs:
+      pre_prefix = k.startswith("{}-".format(self.pre_attr))
+      if pre_prefix:
+        k = k[len(self.pre_attr)+1:]
       if k == self.pre_attr:
         has_pre = True
-        if not self.keep_pre:
+        if not self.keep_pre and not pre_prefix:
           continue
-      elif k == 'lang':
+      if v and self.convert_charrefs and not pre_prefix:
+        v = HTMLParser.unescape(self, v)
+      if k == 'lang':
         lang = v
         if v == self._tag_lang():
           continue
 
       i += 1
-      k = escape.escape_attr_name(k)
+      if not pre_prefix:
+        k = escape.escape_attr_name(k)
       if (v is None or (not v and self.reduce_empty_attributes) or
           (bool_attrs and k in bool_attrs)):
         # For our use case, we treat boolean attributes as quoted because they
@@ -174,8 +183,23 @@ class HTMLMinParser(HTMLParser):
         attrs[i] = k
         last_quoted = i
       else:
-        (v, q) = escape.escape_attr_value(
-          v, double_quote=not self.remove_optional_attribute_quotes)
+        if pre_prefix:
+          has_double_quotes = '"' in v
+          has_single_quotes = "'" in v
+          if not has_double_quotes:
+            if not has_single_quotes and self.remove_optional_attribute_quotes:
+              q = escape.NO_QUOTES
+            else:
+              q = escape.DOUBLE_QUOTE
+          elif not has_single_quotes:
+            q = escape.SINGLE_QUOTES
+          else:
+            logging.error('Unsafe content found in pre-attribute. Escaping.')
+            (v, q) = escape.escape_attr_value(
+              v, double_quote=not self.remove_optional_attribute_quotes)
+        else:
+          (v, q) = escape.escape_attr_value(
+            v, double_quote=not self.remove_optional_attribute_quotes)
         if q == escape.NO_QUOTES:
           attrs[i] = '%s=%s' % (k, v)
           if v[-1] != '/':
@@ -377,6 +401,11 @@ class HTMLMinParser(HTMLParser):
   def reset(self):
     self._data_buffer = []
     HTMLParser.reset(self)
+
+  def unescape(self, val):
+    """Override this method so that we can handle char ref conversion ourself.
+    """
+    return val
 
   @property
   def result(self):

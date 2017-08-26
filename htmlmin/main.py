@@ -36,6 +36,7 @@ def minify(input,
            reduce_empty_attributes=True,
            reduce_boolean_attributes=False,
            remove_optional_attribute_quotes=True,
+           convert_charrefs=True,
            keep_pre=False,
            pre_tags=parser.PRE_TAGS,
            pre_attr='pre',
@@ -69,6 +70,9 @@ def minify(input,
   :param remove_optional_attribute_quotes: When True, optional quotes around
     attributes are removed. When False, all attribute quotes are left intact.
     Defaults to True.
+  :param conver_charrefs: Decode character references such as &amp; and &#46;
+    to their single charater values where safe. This currently only applies to
+    attributes. Data content between tags will be left encoded.
   :param keep_pre: By default, htmlmin uses the special attribute ``pre`` to
     allow you to demarcate areas of HTML that should not be minified. It removes
     this attribute as it finds it. Setting this value to ``True`` tells htmlmin
@@ -92,6 +96,7 @@ def minify(input,
       reduce_empty_attributes=reduce_empty_attributes,
       reduce_boolean_attributes=reduce_boolean_attributes,
       remove_optional_attribute_quotes=remove_optional_attribute_quotes,
+      convert_charrefs=convert_charrefs,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
@@ -117,6 +122,7 @@ class Minifier(object):
                reduce_empty_attributes=True,
                reduce_boolean_attributes=False,
                remove_optional_attribute_quotes=True,
+               convert_charrefs=True,
                keep_pre=False,
                pre_tags=parser.PRE_TAGS,
                pre_attr='pre',
@@ -132,6 +138,7 @@ class Minifier(object):
       reduce_empty_attributes=reduce_empty_attributes,
       reduce_boolean_attributes=reduce_boolean_attributes,
       remove_optional_attribute_quotes=remove_optional_attribute_quotes,
+      convert_charrefs=convert_charrefs,
       keep_pre=keep_pre,
       pre_tags=pre_tags,
       pre_attr=pre_attr)
