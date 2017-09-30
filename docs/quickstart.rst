@@ -30,6 +30,15 @@ tag alone and will remove the ``pre`` attribute before it is output::
   >>> htmlmin.minify(input_html)
   u'<span> minified </span><span>   not minified   </span>'
 
+Attributes will be condensed to their smallest possible representation by 
+default. You can prefix an individual attribute with ``pre-`` to leave it
+unchanged::
+
+  >>> import htmlmin
+  >>> input_html = '''<input value="&lt;minified&gt;" /><input pre-value="&lt;not minified&gt;" />'''
+  >>> htmlmin.minify(input_html)
+  u'<input value="<minified>"><input value=&lt;not minified&gt;>'
+
 The :class:`minify <htmlmin.minify>` function works well for one off
 minifications. However, if you are going to minify several pieces of HTML, the
 :class:`Minifier <htmlmin.Minifier>` class is provided. It works similarly, but
@@ -100,7 +109,9 @@ any time by running `htmlmin -h`::
     -a PRE_ATTR, --pre-attr PRE_ATTR
                           The attribute htmlmin looks for to find blocks of HTML that it should not 
                           minify. This attribute will be removed from the HTML unless '-k' is
-                          specified. Defaults to 'pre'.
+                          specified. Defaults to 'pre'. You can also prefix individual tag attributes
+                          with ``{pre_attr}-`` to prevent the contents of the individual attribute from
+                          being changed.
 
     -p [TAG [TAG ...]], --pre-tags [TAG [TAG ...]]
                           By default, the contents of 'pre', and 'textarea' tags are left unminified.
