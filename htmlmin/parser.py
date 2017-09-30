@@ -30,10 +30,7 @@ import logging
 import sys
 
 import re
-try:
-  from html.parser import HTMLParser
-except ImportError:
-  from HTMLParser import HTMLParser
+from .python3html.parser import HTMLParser
 
 from . import escape
 
@@ -62,7 +59,7 @@ BOOLEAN_ATTRIBUTES = {
   'form': ('hidden', 'novalidate',),
   'iframe': ('hidden', 'seamless',),
   'img': ('hidden', 'ismap',),
-  'input': ('autofocus', 'checked', 'disabled', 'formnovalidate', 'hidden', 
+  'input': ('autofocus', 'checked', 'disabled', 'formnovalidate', 'hidden',
             'multiple', 'readonly', 'required',),
   'keygen': ('autofocus', 'disabled', 'hidden',),
   'object': ('hidden', 'typesmustmatch',),
@@ -282,7 +279,6 @@ class HTMLMinParser(HTMLParser):
         break
 
     has_pre, data, lang = self.build_tag(tag, attrs, False)
-
     start_pre = False
     if (has_pre or self._in_pre_tag > 0 or
         tag == 'script' or tag == 'style' or tag in self.pre_tags):
