@@ -1,3 +1,12 @@
+0.1.11
+======
+* Fix XSS
+* Add support for a 'pre' attribute prefix
+* Remove redundat 'lang' tags
+  (thanks mina86)
+* Fixed IndexError when data is empty
+  (thanks mercuree)
+
 0.1.10
 ======
 * Fix bug in Python 3.5 where char refs were being improperly escaped
