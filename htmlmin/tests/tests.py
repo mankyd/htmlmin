@@ -68,6 +68,14 @@ test command runs project's unit tests without actually deploying it, by
     '\n\n<!DOCTYPE html>\n\n<body>   X   Y   </body>',
     '<!DOCTYPE html><body> X Y </body>'
   ),
+  'dangling_tag': (
+    "<p>first page",
+    "<p>first page"
+    ),
+  'dangling_tag_followup': (
+    "<html><p>next page",
+    "<html><p>next page"
+    )
 }
 
 FEATURES_TEXTS = {
@@ -373,12 +381,19 @@ class TestMinifierObject(HTMLMinTestCase):
     self.assertEqual(self.minify(text[0]), text[1])
     self.assertEqual(self.minify(text[0]), text[1])
 
+  def test_dangling_tag(self):
+    dangling_tag = self.__reference_texts__['dangling_tag']
+    dangling_tag_followup = self.__reference_texts__['dangling_tag_followup']
+    self.assertEqual(self.minify(dangling_tag[0]), dangling_tag[1])
+    self.assertEqual(self.minify(dangling_tag_followup[0]), dangling_tag_followup[1])
+
   def test_buffered_input(self):
     text = self.__reference_texts__['long_text']
     self.minifier.input(text[0][:len(text[0]) // 2])
     self.minifier.input(text[0][len(text[0]) // 2:])
     self.assertEqual(self.minifier.finalize(), text[1])
 
+  
 class TestMinifyFeatures(HTMLMinTestCase):
   __reference_texts__ = FEATURES_TEXTS
 

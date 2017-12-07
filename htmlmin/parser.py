@@ -132,14 +132,7 @@ class HTMLMinParser(HTMLParser):
     self.remove_optional_attribute_quotes = remove_optional_attribute_quotes
     self.convert_charrefs = convert_charrefs
     self.pre_attr = pre_attr
-    self._data_buffer = []
-    self._in_pre_tag = 0
-    self._in_head = False
-    self._in_title = False
-    self._after_doctype = False
-    self._tag_stack = []
-    self._title_newly_opened = False
-    self.__title_trailing_whitespace = False
+    self.reset()
 
   def _tag_lang(self):
     return self._tag_stack[0][2] if self._tag_stack else None
@@ -396,6 +389,13 @@ class HTMLMinParser(HTMLParser):
 
   def reset(self):
     self._data_buffer = []
+    self._in_pre_tag = 0
+    self._in_head = False
+    self._in_title = False
+    self._after_doctype = False
+    self._tag_stack = []
+    self._title_newly_opened = False
+    self.__title_trailing_whitespace = False
     HTMLParser.reset(self)
 
   def unescape(self, val):

@@ -1,3 +1,8 @@
+0.1.12
+======
+* Fix bug that can occur when minifying two pages in a row when the
+  first page has a dangling tag.
+
 0.1.11
 ======
 * Fix XSS
