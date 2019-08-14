@@ -30,7 +30,7 @@ tag alone and will remove the ``pre`` attribute before it is output::
   >>> htmlmin.minify(input_html)
   u'<span> minified </span><span>   not minified   </span>'
 
-Attributes will be condensed to their smallest possible representation by 
+Attributes will be condensed to their smallest possible representation by
 default. You can prefix an individual attribute with ``pre-`` to leave it
 unchanged::
 
@@ -78,15 +78,15 @@ any time by running `htmlmin -h`::
                           put two of them: <!--!! comment -->.
 
     -s, --remove-empty-space
-                          When set, this removes empty space betwen tags in certain cases. 
+                          When set, this removes empty space betwen tags in certain cases.
                           Specifically, it will remove empty space if and only if there a newline
-                          character occurs within the space. Thus, code like 
+                          character occurs within the space. Thus, code like
                           '<span>x</span> <span>y</span>' will be left alone, but code such as
                           '   ...
                             </head>
                             <body>
                               ...'
-                          will become '...</head><body>...'. Note that this CAN break your 
+                          will become '...</head><body>...'. Note that this CAN break your
                           html if you spread two inline tags over two lines. Use with caution.
 
     --remove-all-empty-space
@@ -107,7 +107,7 @@ any time by running `htmlmin -h`::
                           keep the 'pre' attributes in place.
 
     -a PRE_ATTR, --pre-attr PRE_ATTR
-                          The attribute htmlmin looks for to find blocks of HTML that it should not 
+                          The attribute htmlmin looks for to find blocks of HTML that it should not
                           minify. This attribute will be removed from the HTML unless '-k' is
                           specified. Defaults to 'pre'. You can also prefix individual tag attributes
                           with ``{pre_attr}-`` to prevent the contents of the individual attribute from

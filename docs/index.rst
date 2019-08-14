@@ -34,8 +34,8 @@ When we say that htmlmin has 'seatbelts', what we mean is that it comes with
 features that you can use to safely minify beyond the defaults, but you have to
 put them in yourself. For instance, by default, htmlmin will never minimize the
 content between ``<pre>``, ``<textarea>``, ``<script>``, and ``<style>`` tags.
-You can also  explicitly tell it to not minify additional tags either globally 
-by name or by adding the custom ``pre`` attribute to a tag in your HTML. htmlmin 
+You can also  explicitly tell it to not minify additional tags either globally
+by name or by adding the custom ``pre`` attribute to a tag in your HTML. htmlmin
 will remove the ``pre`` attributes as it parses your HTML automatically.
 
 It also includes a command-line tool for easy invocation and integration with
@@ -46,7 +46,7 @@ Install
 
 To install via pip::
 
-  pip install htmlmin 
+  pip install htmlmin
 
 Source Code
 ===========
@@ -69,7 +69,7 @@ Features
   function output.
 * Simple :class:`WSGI middleware <htmlmin.middleware.HTMLMinMiddleware>` to
   minify web app output.
-* `Tested <https://travis-ci.org/mankyd/htmlmin>`_ in both Python 2.7 and 3.2: 
+* `Tested <https://travis-ci.org/mankyd/htmlmin>`_ in both Python 2.7 and 3.2:
   |build_status|
 
 .. |build_status| image:: https://travis-ci.org/mankyd/htmlmin.png?branch=master

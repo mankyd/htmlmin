@@ -5,7 +5,7 @@
 # features. The original file can be found at:
 # https://github.com/python/cpython/blob/44b548dda872c0d4f30afd6b44fd74b053a55ad8/Lib/html/parser.py
 #
-# The largest difference is the reinstatment of the unescape method in 
+# The largest difference is the reinstatment of the unescape method in
 # HTMLParser, which is needed for features in htmlmin. Changes are also
 # made to ensure Python2.7 compatability.
 ########

@@ -61,4 +61,3 @@ def htmlmin(*args, **kwargs):
       'htmlmin decorator does accept positional arguments')
   else:
     return _decorator
-        

@@ -233,7 +233,7 @@ class HTMLMinParser(HTMLParser):
                                       '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
-    if (len(self._data_buffer) == 1 and 
+    if (len(self._data_buffer) == 1 and
         HTML_SPACE_RE.match(self._data_buffer[0][0])):
       self._data_buffer = []
     self._data_buffer.append('<!' + decl + '>')
