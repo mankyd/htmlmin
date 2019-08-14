@@ -393,7 +393,7 @@ class TestMinifierObject(HTMLMinTestCase):
     self.minifier.input(text[0][len(text[0]) // 2:])
     self.assertEqual(self.minifier.finalize(), text[1])
 
-  
+
 class TestMinifyFeatures(HTMLMinTestCase):
   __reference_texts__ = FEATURES_TEXTS
 

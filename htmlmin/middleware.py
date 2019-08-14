@@ -32,10 +32,10 @@ class HTMLMinMiddleware(object):
 
   :param by_default: Specifies if minification should be turned on or off by
     default. Defaults to ``True``.
-  :param keep_header: The middleware recognizes one custom HTTP header that 
+  :param keep_header: The middleware recognizes one custom HTTP header that
     can be used to turn minification on or off on a per-request basis:
     ``X-HTML-Min-Enable``. Setting the header to ``true`` will turn minfication
-    on; anything else will turn minification off. If ``by_default`` is set to 
+    on; anything else will turn minification off. If ``by_default`` is set to
     ``False``, this header is how you would turn minification back on. The
     middleware, by default, removes the header from the output. Setting this
     to ``True`` leaves the header in tact.
@@ -47,14 +47,14 @@ class HTMLMinMiddleware(object):
   passed on to the internal minifier. The documentation for the options can
   be found under :class:`htmlmin.minify`.
   """
-  def __init__(self, app, by_default=True, keep_header=False, 
+  def __init__(self, app, by_default=True, keep_header=False,
                debug=False, **kwargs):
     self.app = app
     self.by_default = by_default
     self.debug = debug
     self.keep_header = keep_header
     self.minifier = Minifier(**kwargs)
-    
+
   def __call__(self, environ, start_response):
     if self.debug:
       return self.app(environ, start_response)
@@ -64,7 +64,7 @@ class HTMLMinMiddleware(object):
     def minified_start_response(status, headers, exc_info=None):
       should_minify.append(self.should_minify(headers))
       if not self.keep_header:
-        headers = [(header, value) for header, value in 
+        headers = [(header, value) for header, value in
                    headers if header != 'X-HTML-Min-Enable']
       start_response(status, headers, exc_info)
 
@@ -72,7 +72,7 @@ class HTMLMinMiddleware(object):
     if should_minify[0]:
       return [self.minifier.minify(*html)]
     return html
-  
+
   def should_minify(self, headers):
     is_html = False
     flag_header = None
@@ -88,5 +88,5 @@ class HTMLMinMiddleware(object):
           break
 
     return is_html and (
-      (self.by_default and flag_header != False) or 
+      (self.by_default and flag_header != False) or
       (not self.by_default and flag_header))

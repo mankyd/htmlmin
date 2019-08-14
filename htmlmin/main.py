@@ -83,7 +83,7 @@ def minify(input,
     that ``<script>`` and ``<style>`` tags are never minimized.
   :param pre_attr: Specifies the attribute that, when found in an HTML tag,
     indicates that the content of the tag should not be minified. Defaults to
-    ``pre``. You can also prefix individual tag attributes with 
+    ``pre``. You can also prefix individual tag attributes with
     ``{pre_attr}-`` to prevent the contents of the individual attribute from
     being changed.
   :return: A string containing the minified HTML.
