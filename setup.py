@@ -21,9 +21,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=True,
-    test_suite='htmlmin.tests.tests.suite',
     install_requires=[],
-    tests_require=[],
     classifiers=[
         "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
