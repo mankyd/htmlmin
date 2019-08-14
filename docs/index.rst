@@ -69,7 +69,7 @@ Features
   function output.
 * Simple :class:`WSGI middleware <htmlmin.middleware.HTMLMinMiddleware>` to
   minify web app output.
-* `Tested <https://travis-ci.org/mankyd/htmlmin>`_ in both Python 2.7 and 3.2: 
+* `Tested <https://travis-ci.org/mankyd/htmlmin>`_ on Python 2.7 and 3.5+:
   |build_status|
 
 .. |build_status| image:: https://travis-ci.org/mankyd/htmlmin.png?branch=master
