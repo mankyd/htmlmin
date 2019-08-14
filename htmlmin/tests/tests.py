@@ -586,32 +586,3 @@ class TestMiddleware(HTMLMinTestCase):
         ],
       '    X    Y   ')
     self.assertTrue(any((h == 'X-HTML-Min-Enable' for h, v in headers)))
-
-def suite():
-    minify_function_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestMinifyFunction)
-    minifier_object_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestMinifierObject)
-    minify_features_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestMinifyFeatures)
-    self_closing_tags_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestSelfClosingTags)
-    self_opening_tags_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestSelfOpeningTags)
-    decorator_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestDecorator)
-    middleware_suite = unittest.TestLoader().\
-        loadTestsFromTestCase(TestMiddleware)
-    return unittest.TestSuite([
-        minify_function_suite,
-        minifier_object_suite,
-        minify_features_suite,
-        self_closing_tags_suite,
-        self_opening_tags_suite,
-        decorator_suite,
-        middleware_suite,
-        test_escape.suite(),
-        ])
-
-if __name__ == '__main__':
-  unittest.main()
