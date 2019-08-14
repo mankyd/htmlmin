@@ -18,10 +18,10 @@ setup(
     download_url='https://github.com/mankyd/htmlmin',
     author='Dave Mankoff',
     author_email='mankyd@gmail.com',
-    packages=find_packages(),
+    packages=find_packages(exclude=["tests"]),
     include_package_data=True,
     zip_safe=True,
-    test_suite='htmlmin.tests.tests.suite',
+    test_suite='tests.tests.suite',
     install_requires=[],
     tests_require=[],
     classifiers=[

@@ -1,3 +1,4 @@
+graft tests
 include README.rst
 include LICENSE
-prune htmlmin/tests
+include tox.ini
