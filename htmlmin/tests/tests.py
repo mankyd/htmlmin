@@ -223,7 +223,7 @@ FEATURES_TEXTS = {
   ),
   'convert_charrefs': (
     '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
-     u'<input value="&#34;\'\'\'<.\u03c0> &#34;">',
+     '<input value="&#34;\'\'\'<.\u03c0> &#34;">',
   ),
   'convert_charrefs_false': (
     '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
