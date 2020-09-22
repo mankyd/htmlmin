@@ -78,7 +78,7 @@ any time by running `htmlmin -h`::
                           put two of them: <!--!! comment -->.
 
     -s, --remove-empty-space
-                          When set, this removes empty space betwen tags in certain cases. 
+                          When set, this removes empty space between tags in certain cases.
                           Specifically, it will remove empty space if and only if there a newline
                           character occurs within the space. Thus, code like 
                           '<span>x</span> <span>y</span>' will be left alone, but code such as
@@ -90,7 +90,7 @@ any time by running `htmlmin -h`::
                           html if you spread two inline tags over two lines. Use with caution.
 
     --remove-all-empty-space
-                          When set, this removes ALL empty space betwen tags. WARNING: this can and
+                          When set, this removes ALL empty space between tags. WARNING: this can and
                           likely will cause unintended consequences. For instance, '<i>X</i> <i>Y</i>'
                           will become '<i>X</i><i>Y</i>'. Putting whitespace along with other text will
                           avoid this problem. Only use if you are confident in the result. Whitespace is
@@ -102,7 +102,7 @@ any time by running `htmlmin -h`::
     -H, --in-head         If you are parsing only a fragment of HTML, and the fragment occurs in the
                           head of the document, setting this will remove some extra whitespace.
 
-    -k, --keep-pre-attr   HTMLMin supports the propietary attribute 'pre' that can be added to elements
+    -k, --keep-pre-attr   HTMLMin supports the proprietary attribute 'pre' that can be added to elements
                           to prevent minification. This attribute is removed by default. Set this flag to
                           keep the 'pre' attributes in place.
 
@@ -116,7 +116,7 @@ any time by running `htmlmin -h`::
     -p [TAG [TAG ...]], --pre-tags [TAG [TAG ...]]
                           By default, the contents of 'pre', and 'textarea' tags are left unminified.
                           You can specify different tags using the --pre-tags option. 'script' and 'style'
-                          tags are always left unmininfied.
+                          tags are always left unminified.
 
     -e ENCODING, --encoding ENCODING
                           Encoding to read and write with. Default 'utf-8'.

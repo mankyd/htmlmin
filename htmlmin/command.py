@@ -64,7 +64,7 @@ put two of them: <!--!! comment -->.
 
 parser.add_argument('-s', '--remove-empty-space',
   help=(
-'''When set, this removes empty space betwen tags in certain cases.
+'''When set, this removes empty space between tags in certain cases.
 Specifically, it will remove empty space if and only if there a newline
 character occurs within the space. Thus, code like
 '<span>x</span> <span>y</span>' will be left alone, but code such as
@@ -80,7 +80,7 @@ html if you spread two inline tags over two lines. Use with caution.
 
 parser.add_argument('--remove-all-empty-space',
   help=(
-'''When set, this removes ALL empty space betwen tags. WARNING: this can and
+'''When set, this removes ALL empty space between tags. WARNING: this can and
 likely will cause unintended consequences. For instance, '<i>X</i> <i>Y</i>'
 will become '<i>X</i><i>Y</i>'. Putting whitespace along with other text will
 avoid this problem. Only use if you are confident in the result. Whitespace is
@@ -106,7 +106,7 @@ head of the document, setting this will remove some extra whitespace.
 
 parser.add_argument('-k', '--keep-pre-attr',
   help=(
-'''HTMLMin supports the propietary attribute 'pre' that can be added to elements
+'''HTMLMin supports the proprietary attribute 'pre' that can be added to elements
 to prevent minification. This attribute is removed by default. Set this flag to
 keep the 'pre' attributes in place.
 
@@ -128,7 +128,7 @@ parser.add_argument('-p', '--pre-tags',
   help=(
 '''By default, the contents of 'pre', and 'textarea' tags are left unminified.
 You can specify different tags using the --pre-tags option. 'script' and 'style'
-tags are always left unmininfied.
+tags are always left unminified.
 
 '''),
   nargs='*',
