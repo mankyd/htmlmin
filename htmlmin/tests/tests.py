@@ -203,11 +203,9 @@ FEATURES_TEXTS = {
     '<head><title pre> Foo  bar </title></head>',
     '<head><title> Foo  bar </title></head>',
   ),
-  # TODO: This is invalid HTML but regardless we should handle it sensibly
-  # rather than removing trailing whitespace everywhere.
   'missing_title_end': (
     '<head><title> Test </head><p>Foo <i> bar </i> and baz. </p>',
-    '<head><title>Test</head><p> Foo<i> bar</i> and baz.</p>',
+    '<head><title>Test</head><p>Foo <i> bar </i> and baz. </p>',
   ),
   'dont_minify_scripts_or_styles': (
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
