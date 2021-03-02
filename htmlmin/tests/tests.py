@@ -197,7 +197,7 @@ FEATURES_TEXTS = {
   ),
   'remove_head_spaces': (
     '<head>  <title>   &#x2603;X  Y  &amp;  Z </title>  </head>',
-    '<head><title>&#x2603;X Y &amp; Z</title></head>',
+    '<head><title>☃X Y & Z</title></head>',
   ),
   'pre_respected_on_title': (
     '<head><title pre> Foo  bar </title></head>',
@@ -235,12 +235,11 @@ FEATURES_TEXTS = {
   ),
   'remove_entity_space': (
     '<p>Foo &#x20; bar &#32; baz</p>',
-    '<p>Foo &#x20; bar &#32; baz</p>',
+    '<p>Foo bar baz</p>',
   ),
-  # TODO: Fix, this should generate &amp;amp;
   'escape_after_close_tag_removal': (
     '<p><br>Foo &</br>amp; bar, <br>baz &am</br>p; qux</p>',
-    '<p><br>Foo &amp; bar, <br>baz &amp; qux</p>',
+    '<p><br>Foo &amp;amp; bar, <br>baz &amp;amp; qux</p>',
   ),
   # Note: the ‘]’ being eaten is Python bug in _markupbase.py, see
   # https://github.com/python/cpython/pull/24720
@@ -256,14 +255,14 @@ CONVERT_CHARREFS_TEXTS = {
     '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
     u'&#34;\'\'\'<.\u03C0> &#34;',
     '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
-    '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
+    u'"\'\'\'&lt;.\u03C0> "',
     '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
   ),
   'not_escaped': (
     'Tiffany &amp; Co. H&M 1&amp;2 1&amp;2;',
     'Tiffany & Co. H&M 1&2 1&2;',
     'Tiffany &amp; Co. H&M 1&amp;2 1&amp;2;',
-    'Tiffany &amp; Co. H&M 1&amp;2 1&amp;2;',
+    'Tiffany & Co. H&amp;M 1&2 1&amp;2;',
     # TODO: Fix.  There is no named character reference ‘M’ and as such ‘&M’ is
     # perfectly valid way to write ‘&M’ according to HTML5.  Changing it to
     # ‘&M;’ changes the text.  This is probably Python bug.
@@ -273,14 +272,14 @@ CONVERT_CHARREFS_TEXTS = {
     ' 1&amp;2',
     ' 1&amp;2',
     ' 1&amp;2',
-    ' 1&amp;2',
+    ' 1&2',
     ' 1&amp;2',
   ),
   'no_semicolon': (
     '/?sect=2&para=5&par=8',
     '/?sect=2&para=5&par=8',
     '/?sect=2&para=5&par=8',
-    '/?sect=2&para=5&par=8',
+     '/?sect=2\u00B6=5&amp;par=8',
     # TODO: Fix.  There is no named character reference ‘par’ (even though
     # there’s ‘par;’) and as such ‘&par’ is perfectly valid way to write ‘&par’
     # according to HTML5.  Changing it to ‘&par;’ changes the text.  This is
@@ -429,10 +428,10 @@ class TestMinifyFunction(HTMLMinTestCase):
                                     convert_charrefs=False)
 
   def test_basic_minification_quality(self):
-    self._test_minification_quality(9408, 9398)
+    self._test_minification_quality(9595, 9582)
 
   def test_high_minification_quality(self):
-    self._test_minification_quality(12518, 12508,
+    self._test_minification_quality(12705, 12692,
                                     remove_all_empty_space=True,
                                     remove_comments=True)
 

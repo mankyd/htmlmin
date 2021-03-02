@@ -136,6 +136,15 @@ class HTMLMinParser(HTMLParser):
   def _ends_with_one_of(self, one_of):
     return self._data_buffer and self._data_buffer[-1][-1] in one_of
 
+  def _pop_if_one_of(self, one_of):
+    if not self._ends_with_one_of(one_of):
+      return False
+    if len(self._data_buffer[-1]) == 1:
+      self._data_buffer.pop()
+    else:
+      self._data_buffer[-1] = self._data_buffer[-1][:-1]
+    return True
+
   def build_tag(self, tag, attrs, close_tag):
     has_pre = False
 
@@ -328,6 +337,39 @@ class HTMLMinParser(HTMLParser):
     if self._in_pre_tag > 0:
       self._data_buffer.append(data)
       return
+
+    if self.convert_charrefs:
+      data = HTMLParser.unescape(self, data)
+
+      # If trailing character in buffer is an ampersand (which can happen if
+      # we’ve removed a close tag) we need to make sure it’s escaped if it needs
+      # to be.
+      if self._data_buffer and self._pop_if_one_of('&'):
+        data = '&' + data
+
+      # Within text only < and & need to be escaped.  Furthermore, the latter
+      # doesn’t need to be escaped under certain conditions.  It needs to be
+      # escaped if:
+      #
+      # 1) it’s followed by a hash sign,
+      # 2) it’s followed by a defined named character reference or
+      # 3) forms an ambiguous ampersand, i.e. it’s followed by a sequence of
+      #    alphanumeric characters finished with a semicolon (whether or not it
+      #    matches a defined named character reference).
+      #
+      # Because there are defined named character references which do not end in
+      # a semicolon, some ‘&<alnum>+’ strings need escaping and some don’t.
+      # (Yeah, HTML5 is weird).
+      #
+      # For now we’re covering the first case, the second case by checking if
+      # ampersand is followed by a letter while the third case is partially
+      # covered by the second and than we also explicitly check for ambiguous
+      # ampersand with digits as first character.
+      #
+      # This way we unnecessarily escape ‘&blah’ but at least we don’t escape
+      # ‘&123’ while escaping ‘&123;’.
+      data = re.sub('&(?=[a-zA-Z#]|[0-9][a-zA-Z0-9]*;)',
+                    '&amp;', data).replace('<', '&lt;')
 
     # remove_all_empty_space matches everything. remove_empty_space only
     # matches if there's a newline involved.

@@ -70,9 +70,9 @@ def minify(input,
   :param remove_optional_attribute_quotes: When True, optional quotes around
     attributes are removed. When False, all attribute quotes are left intact.
     Defaults to True.
-  :param conver_charrefs: Decode character references such as &amp; and &#46;
-    to their single charater values where safe. This currently only applies to
-    attributes. Data content between tags will be left encoded.
+  :param convert_charrefs: Decode character references such as &amp; and &#46;
+    to their single charater values where safe. This applies to attributes as
+    well as data.
   :param keep_pre: By default, htmlmin uses the special attribute ``pre`` to
     allow you to demarcate areas of HTML that should not be minified. It removes
     this attribute as it finds it. Setting this value to ``True`` tells htmlmin
@@ -83,7 +83,7 @@ def minify(input,
     that ``<script>`` and ``<style>`` tags are never minimized.
   :param pre_attr: Specifies the attribute that, when found in an HTML tag,
     indicates that the content of the tag should not be minified. Defaults to
-    ``pre``. You can also prefix individual tag attributes with 
+    ``pre``. You can also prefix individual tag attributes with
     ``{pre_attr}-`` to prevent the contents of the individual attribute from
     being changed.
   :return: A string containing the minified HTML.
