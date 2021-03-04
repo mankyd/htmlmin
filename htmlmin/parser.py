@@ -31,6 +31,7 @@ import sys
 
 import re
 from .python3html.parser import HTMLParser
+from .python3html import unescape as py_unescape
 
 from . import escape
 
@@ -157,7 +158,7 @@ class HTMLMinParser(HTMLParser):
         if not self.keep_pre and not pre_prefix:
           continue
       if v and self.convert_charrefs and not pre_prefix:
-        v = HTMLParser.unescape(self, v)
+        v = py_unescape(v, in_attr=True)
       if k == 'lang':
         lang = v
         if v == self._tag_lang():
@@ -233,7 +234,7 @@ class HTMLMinParser(HTMLParser):
                                       '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
-    if (len(self._data_buffer) == 1 and 
+    if (len(self._data_buffer) == 1 and
         HTML_SPACE_RE.match(self._data_buffer[0][0])):
       self._data_buffer = []
     self._data_buffer.append('<!' + decl + '>')

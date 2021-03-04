@@ -280,10 +280,7 @@ CONVERT_CHARREFS_TEXTS = {
   ),
   'no_semicolon': (
     '/?sect=2&para=5&par=8',
-    # TODO: Fix.  Inside of an attribute value, if named character reference
-    # does not end with a semicolon and is proceeded by an equal sign, it must
-    # be left intact.
-    u'/?sect=2\u00B6=5&par=8',
+    '/?sect=2&para=5&par=8',
     '/?sect=2&para=5&par=8',
     '/?sect=2&para=5&par=8',
     # TODO: Fix.  There is no named character reference ‘par’ (even though

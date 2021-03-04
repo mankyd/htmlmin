@@ -95,7 +95,7 @@ _invalid_codepoints = {
 }
 
 
-def _replace_charref(s):
+def _replace_charref(s, in_attr):
     s = s.group(1)
     if s[0] == '#':
         # numeric charref
@@ -117,10 +117,11 @@ def _replace_charref(s):
     if v is not None:
         return v
     # find the longest matching name (as defined by the standard)
-    for x in range(len(s)-1, 1, -1):
-        v = _html5.get(s[:x])
-        if v is not None:
-            return v + s[x:]
+    if not in_attr:
+        for x in range(len(s)-1, 1, -1):
+            v = _html5.get(s[:x])
+            if v is not None:
+                return v + s[x:]
     return '&' + s
 
 
@@ -128,7 +129,14 @@ _charref = _re.compile(r'&(#[0-9]+;?'
                        r'|#[xX][0-9a-fA-F]+;?'
                        r'|[a-zA-Z][0-9a-zA-Z]{,30};?)')
 
-def unescape(s):
+# Like _charref but requires ; after named reference, see
+# https://html.spec.whatwg.org/multipage/parsing.html#named-character-reference-state
+_charref_in_attr = _re.compile(r'&(#[0-9]+;?'
+                               r'|#[xX][0-9a-fA-F]+;?'
+                               r'|[a-zA-Z][0-9a-zA-Z]{,30};)')
+
+
+def unescape(s, in_attr=False):
     """
     Convert all named and numeric character references (e.g. &gt;, &#62;,
     &x3e;) in the string s to the corresponding unicode characters.
@@ -138,4 +146,5 @@ def unescape(s):
     """
     if '&' not in s:
         return s
-    return _charref.sub(_replace_charref, s)
+    return (_charref_in_attr if in_attr else _charref).sub(
+        lambda m: _replace_charref(m, in_attr), s)
