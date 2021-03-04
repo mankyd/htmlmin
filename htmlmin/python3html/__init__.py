@@ -103,28 +103,30 @@ def _replace_charref(s):
             num = int(s[2:].rstrip(';'), 16)
         else:
             num = int(s[1:].rstrip(';'))
-        if num in _invalid_charrefs:
-            return _invalid_charrefs[num]
+        v = _invalid_charrefs.get(num)
+        if v is not None:
+            return v
         if 0xD800 <= num <= 0xDFFF or num > 0x10FFFF:
             return '\uFFFD'
         if num in _invalid_codepoints:
             return ''
         return unichr(num)
-    else:
-        # named charref
-        if s in _html5:
-            return _html5[s]
-        # find the longest matching name (as defined by the standard)
-        for x in range(len(s)-1, 1, -1):
-            if s[:x] in _html5:
-                return _html5[s[:x]] + s[x:]
-        else:
-            return '&' + s
+
+    # named charref
+    v = _html5.get(s)
+    if v is not None:
+        return v
+    # find the longest matching name (as defined by the standard)
+    for x in range(len(s)-1, 1, -1):
+        v = _html5.get(s[:x])
+        if v is not None:
+            return v + s[x:]
+    return '&' + s
 
 
 _charref = _re.compile(r'&(#[0-9]+;?'
                        r'|#[xX][0-9a-fA-F]+;?'
-                       r'|[^\t\n\f <&#;]{1,32};?)')
+                       r'|[a-zA-Z][0-9a-zA-Z]{,30};?)')
 
 def unescape(s):
     """
