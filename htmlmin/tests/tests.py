@@ -197,7 +197,15 @@ FEATURES_TEXTS = {
   ),
   'remove_head_spaces': (
     '<head>  <title>   &#x2603;X  Y  &amp;  Z </title>  </head>',
-    '<head><title>&#x2603;X Y &amp; Z</title></head>',
+    '<head><title>☃X Y & Z</title></head>',
+  ),
+  'pre_respected_on_title': (
+    '<head><title pre> Foo  bar </title></head>',
+    '<head><title> Foo  bar </title></head>',
+  ),
+  'missing_title_end': (
+    '<head><title> Test </head><p>Foo <i> bar </i> and baz. </p>',
+    '<head><title>Test</head><p>Foo <i> bar </i> and baz. </p>',
   ),
   'dont_minify_scripts_or_styles': (
     '<body>  <script>   X  </script>  <style>   X</style>   </body>',
@@ -221,18 +229,70 @@ FEATURES_TEXTS = {
     ('<html><body lang=en><p>This is an example.'
      '<p lang=pl>I po polsku <span lang=el>and more English</span>.'),
   ),
-  'convert_charrefs': (
-    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
-     u'<input value="&#34;\'\'\'<.\u03c0> &#34;">',
-  ),
-  'convert_charrefs_false': (
-    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
-    '<input value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
-  ),
   'dont_convert_pre_attr': (
     '<input pre-value="&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;">',
     '<input value=&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;>',
   ),
+  'remove_entity_space': (
+    '<p>Foo &#x20; bar &#32; baz</p>',
+    '<p>Foo bar baz</p>',
+  ),
+  'escape_after_close_tag_removal': (
+    '<p><br>Foo &</br>amp; bar, <br>baz &am</br>p; qux</p>',
+    '<p><br>Foo &amp;amp; bar, <br>baz &amp;amp; qux</p>',
+  ),
+  # Note: the ‘]’ being eaten is Python bug in _markupbase.py, see
+  # https://github.com/python/cpython/pull/24720
+  'leave_cdata_alone': (
+    '<p>Leave <![CDATA[ & &#38; &amp;  < &lt;  ]]> alone.',
+    '<p>Leave <![CDATA[ & &#38; &amp;  < &lt;  ]> alone.',
+  ),
+}
+
+# key: (input, out_attribute_on, out_attribute_off, out_text_on, out_text_off)
+CONVERT_CHARREFS_TEXTS = {
+  'entities': (
+    '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
+    u'&#34;\'\'\'<.\u03C0> &#34;',
+    '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
+    u'"\'\'\'&lt;.\u03C0> "',
+    '&#34;&#39;&#39;&#39;&lt;&#46;&pi;&gt; &#34;',
+  ),
+  'not_escaped': (
+    'Tiffany &amp; Co. H&M 1&amp;2 1&amp;2;',
+    'Tiffany & Co. H&M 1&2 1&2;',
+    'Tiffany &amp; Co. H&M 1&amp;2 1&amp;2;',
+    'Tiffany & Co. H&amp;M 1&2 1&amp;2;',
+    # TODO: Fix.  There is no named character reference ‘M’ and as such ‘&M’ is
+    # perfectly valid way to write ‘&M’ according to HTML5.  Changing it to
+    # ‘&M;’ changes the text.  This is probably Python bug.
+    'Tiffany &amp; Co. H&M; 1&amp;2 1&amp;2;',
+  ),
+  'at_end': (
+    ' 1&amp;2',
+    ' 1&amp;2',
+    ' 1&amp;2',
+    ' 1&2',
+    ' 1&amp;2',
+  ),
+  'no_semicolon': (
+    '/?sect=2&para=5&par=8',
+    '/?sect=2&para=5&par=8',
+    '/?sect=2&para=5&par=8',
+     '/?sect=2\u00B6=5&amp;par=8',
+    # TODO: Fix.  There is no named character reference ‘par’ (even though
+    # there’s ‘par;’) and as such ‘&par’ is perfectly valid way to write ‘&par’
+    # according to HTML5.  Changing it to ‘&par;’ changes the text.  This is
+    # probably Python bug.
+    '/?sect=2&para;=5&par;=8',
+  ),
+  'followed_by_eq': (
+    '/?sect=2&amp;para=5',
+    '/?sect=2&para=5',
+    '/?sect=2&amp;para=5',
+    '/?sect=2&amp;para=5',
+    '/?sect=2&amp;para=5',
+  )
 }
 
 SELF_CLOSE_TEXTS = {
@@ -334,16 +394,14 @@ SELF_OPENING_TEXTS = {
   ),
 }
 
+def _make_test(inp, out, **kw):
+  return lambda self: self.assertEqual(self.minify(inp, **kw), out)
+
 class HTMLMinTestMeta(type):
   def __new__(cls, name, bases, dct):
-    def make_test(text):
-      def inner_test(self):
-        self.assertEqual(self.minify(text[0]), text[1])
-      return inner_test
-
     for k, v in dct.get('__reference_texts__',{}).items():
       if 'test_'+k not in dct:
-        dct['test_'+k] = make_test(v)
+        dct['test_'+k] = _make_test(*v)
     return type.__new__(cls, str(name), bases, dct)
 
 class HTMLMinTestCase(
@@ -354,19 +412,28 @@ class HTMLMinTestCase(
 class TestMinifyFunction(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
 
-  def test_basic_minification_quality(self):
+  def _test_minification_quality(self, want_chars, want_bytes, *args, **kw):
     import codecs
     with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
       inp = inpf.read()
-    out = self.minify(inp)
-    self.assertEqual(len(inp) - len(out), 9408)
+    out = self.minify(inp, *args, **kw)
+    got_chars = len(inp) - len(out)
+    got_bytes = len(inp.encode('utf-8')) - len(out.encode('utf-8'))
+    self.assertEqual((got_chars, got_bytes), (want_chars, want_bytes))
+
+  def test_poor_minification_quality(self):
+    self._test_minification_quality(754, 754,
+                                    reduce_empty_attributes=False,
+                                    remove_optional_attribute_quotes=False,
+                                    convert_charrefs=False)
+
+  def test_basic_minification_quality(self):
+    self._test_minification_quality(9595, 9582)
 
   def test_high_minification_quality(self):
-    import codecs
-    with codecs.open('htmlmin/tests/large_test.html', encoding='utf-8') as inpf:
-      inp = inpf.read()
-    out = self.minify(inp, remove_all_empty_space=True, remove_comments=True)
-    self.assertEqual(len(inp) - len(out), 12518)
+    self._test_minification_quality(12705, 12692,
+                                    remove_all_empty_space=True,
+                                    remove_comments=True)
 
 class TestMinifierObject(HTMLMinTestCase):
   __reference_texts__ = MINIFY_FUNCTION_TEXTS
@@ -393,7 +460,7 @@ class TestMinifierObject(HTMLMinTestCase):
     self.minifier.input(text[0][len(text[0]) // 2:])
     self.assertEqual(self.minifier.finalize(), text[1])
 
-  
+
 class TestMinifyFeatures(HTMLMinTestCase):
   __reference_texts__ = FEATURES_TEXTS
 
@@ -479,10 +546,25 @@ class TestMinifyFeatures(HTMLMinTestCase):
     text = self.__reference_texts__['dont_minify_scripts_or_styles']
     self.assertEqual(htmlmin.minify(text[0], pre_tags=[]), text[1])
 
-  def test_convert_charrefs_false(self):
-    text = self.__reference_texts__['convert_charrefs_false']
-    self.assertEqual(htmlmin.minify(text[0], convert_charrefs=False), text[1])
+def _make_test_convert_charrefs(tests):
+  def setUp(self): self.minify = htmlmin.minify
+  d = {'setUp': setUp}
 
+  def add_test(key, fmt, inp, out, convert_charrefs):
+    key = 'test_{}_{}'.format(key, ('off', 'on')[int(convert_charrefs)])
+    d[key] = _make_test(fmt.format(inp), fmt.format(out),
+                        convert_charrefs=convert_charrefs)
+
+  for key, test in tests.items():
+    inp = test[0]
+    add_test(key + '_in_attr_value', '<input value="{}">', inp, test[1], True)
+    add_test(key + '_in_attr_value', '<input value="{}">', inp, test[2], False)
+    add_test(key + '_in_text', '<p>{}', inp, test[3], True)
+    add_test(key + '_in_text', '<p>{}', inp, test[4], False)
+
+  return type('TestConvertCharrefs', (unittest.TestCase,), d)
+
+TestConvertCharrefs = _make_test_convert_charrefs(CONVERT_CHARREFS_TEXTS)
 
 class TestSelfClosingTags(HTMLMinTestCase):
   __reference_texts__ = SELF_CLOSE_TEXTS

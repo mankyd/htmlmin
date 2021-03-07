@@ -31,18 +31,14 @@ import sys
 
 import re
 from .python3html.parser import HTMLParser
+from .python3html import unescape as py_unescape
 
 from . import escape
 
 # https://www.w3.org/TR/html5/single-page.html#space-character
-HTML_SPACE_RE = re.compile('[\x20\x09\x0a\x0c\x0d]+')
-HTML_ALL_SPACE_RE = re.compile('^[\x20\x09\x0a\x0c\x0d]+$')
-HTML_LEADING_SPACE_RE = re.compile(
-  '^[\x20\x09\x0a\x0c\x0d]+')
-HTML_TRAILING_SPACE_RE = re.compile(
-  '[\x20\x09\x0a\x0c\x0d]+$')
-HTML_LEADING_TRAILING_SPACE_RE = re.compile(
-  '(^[\x20\x09\x0a\x0c\x0d]+)|([\x20\x09\x0a\x0c\x0d]+$)')
+HTML_SPACE_CHARS = '\x20\x09\x0a\x0c\x0d'
+HTML_SPACE_RE = re.compile('[{}]+'.format(HTML_SPACE_CHARS))
+HTML_ALL_SPACE_RE = re.compile('^[{}]+$'.format(HTML_SPACE_CHARS))
 
 PRE_TAGS = ('pre', 'textarea')  # styles and scripts are never minified
 # http://www.w3.org/TR/html51/syntax.html#elements-0
@@ -137,6 +133,18 @@ class HTMLMinParser(HTMLParser):
   def _tag_lang(self):
     return self._tag_stack[0][2] if self._tag_stack else None
 
+  def _ends_with_one_of(self, one_of):
+    return self._data_buffer and self._data_buffer[-1][-1] in one_of
+
+  def _pop_if_one_of(self, one_of):
+    if not self._ends_with_one_of(one_of):
+      return False
+    if len(self._data_buffer[-1]) == 1:
+      self._data_buffer.pop()
+    else:
+      self._data_buffer[-1] = self._data_buffer[-1][:-1]
+    return True
+
   def build_tag(self, tag, attrs, close_tag):
     has_pre = False
 
@@ -157,7 +165,7 @@ class HTMLMinParser(HTMLParser):
         if not self.keep_pre and not pre_prefix:
           continue
       if v and self.convert_charrefs and not pre_prefix:
-        v = HTMLParser.unescape(self, v)
+        v = py_unescape(v, in_attr=True)
       if k == 'lang':
         lang = v
         if v == self._tag_lang():
@@ -233,8 +241,8 @@ class HTMLMinParser(HTMLParser):
                                       '/' if close_tag else ''), lang
 
   def handle_decl(self, decl):
-    if (len(self._data_buffer) == 1 and 
-        HTML_SPACE_RE.match(self._data_buffer[0][0])):
+    if (len(self._data_buffer) == 1 and
+        self._data_buffer[0][0] in HTML_SPACE_CHARS):
       self._data_buffer = []
     self._data_buffer.append('<!' + decl + '>')
     self._after_doctype = True
@@ -245,6 +253,10 @@ class HTMLMinParser(HTMLParser):
     for i, t in enumerate(self._tag_stack):
       if t[1]:
         num_pres += 1
+      if t[0] == 'title':
+        self._in_title = False
+        self._title_newly_opened = False
+        self._title_trailing_whitespace = False
       if t[0] == tag:
         break
 
@@ -264,6 +276,7 @@ class HTMLMinParser(HTMLParser):
     elif self._in_head and tag == 'title':
       self._in_title = True
       self._title_newly_opened = True
+      self._title_trailing_whitespace = False
 
     for t in self._tag_stack:
       closed_by_tags = TAG_SETS.get(t[0])
@@ -300,9 +313,6 @@ class HTMLMinParser(HTMLParser):
         # TODO: Did we know that we were in an head tag?! If not, we need to
         # reminify everything to remove extra spaces.
         self._in_head = False
-      elif tag == 'title':
-        self._in_title = False
-        self._title_newly_opened = False
       try:
         self._in_pre_tag -= self._close_tags_up_to(tag)
       except OpenTagNotFoundError:
@@ -326,60 +336,83 @@ class HTMLMinParser(HTMLParser):
   def handle_data(self, data):
     if self._in_pre_tag > 0:
       self._data_buffer.append(data)
-    else:
-      # remove_all_empty_space matches everything. remove_empty_space only
-      # matches if there's a newline involved.
-      if self.remove_all_empty_space or self._in_head or self._after_doctype:
-        if HTML_ALL_SPACE_RE.match(data):
+      return
+
+    if self.convert_charrefs:
+      data = HTMLParser.unescape(self, data)
+
+      # If trailing character in buffer is an ampersand (which can happen if
+      # we’ve removed a close tag) we need to make sure it’s escaped if it needs
+      # to be.
+      if self._data_buffer and self._pop_if_one_of('&'):
+        data = '&' + data
+
+      # Within text only < and & need to be escaped.  Furthermore, the latter
+      # doesn’t need to be escaped under certain conditions.  It needs to be
+      # escaped if:
+      #
+      # 1) it’s followed by a hash sign,
+      # 2) it’s followed by a defined named character reference or
+      # 3) forms an ambiguous ampersand, i.e. it’s followed by a sequence of
+      #    alphanumeric characters finished with a semicolon (whether or not it
+      #    matches a defined named character reference).
+      #
+      # Because there are defined named character references which do not end in
+      # a semicolon, some ‘&<alnum>+’ strings need escaping and some don’t.
+      # (Yeah, HTML5 is weird).
+      #
+      # For now we’re covering the first case, the second case by checking if
+      # ampersand is followed by a letter while the third case is partially
+      # covered by the second and than we also explicitly check for ambiguous
+      # ampersand with digits as first character.
+      #
+      # This way we unnecessarily escape ‘&blah’ but at least we don’t escape
+      # ‘&123’ while escaping ‘&123;’.
+      data = re.sub('&(?=[a-zA-Z#]|[0-9][a-zA-Z0-9]*;)',
+                    '&amp;', data).replace('<', '&lt;')
+
+    # remove_all_empty_space matches everything. remove_empty_space only
+    # matches if there's a newline involved.
+    if self.remove_all_empty_space or self._in_head or self._after_doctype:
+      if HTML_ALL_SPACE_RE.match(data):
+        return
+    elif (self.remove_empty_space and HTML_ALL_SPACE_RE.match(data) and
+          ('\n' in data or '\r' in data)):
+      return
+
+    data = HTML_SPACE_RE.sub(' ', data)
+    if self._title_trailing_whitespace:
+      data = ' ' + data
+      self._title_trailing_whitespace = False
+    elif not data:
+      return
+
+    if data[0] == ' ':
+      # This checks for two conditions:
+      # * If we're in the title, remove leading whitespace.
+      # * If we're not in a pre block, its possible that we append two spaces
+      #   together, which we want to avoid. For instance, if we remove
+      #   a comment from between two blocks of text: a <!-- B --> c => a  c.
+      if (self._title_newly_opened or self._ends_with_one_of(HTML_SPACE_CHARS)):
+        data = data[1:]
+        if not data:
           return
-      elif (self.remove_empty_space and HTML_ALL_SPACE_RE.match(data) and
-            ('\n' in data or '\r' in data)):
-        return
 
-      # if we're in the title, remove leading and trailing whitespace.
-      # note that the title may be parsed in chunks if entityref's or charrefs
-      # are encountered.
-      if self._in_title:
-        if self.__title_trailing_whitespace:
-          self._data_buffer.append(' ')
-        self.__title_trailing_whitespace = (
-          HTML_ALL_SPACE_RE.match(data[-1]) is not None)
-        if self._title_newly_opened:
-          self._title_newly_opened = False
-          data = HTML_LEADING_TRAILING_SPACE_RE.sub('', data)
-        else:
-          data = HTML_TRAILING_SPACE_RE.sub(
-            '', HTML_LEADING_TRAILING_SPACE_RE.sub(' ', data))
+    # If we’re in title, delay insertion of trailing white space.  We don’t want
+    # to insert it if we’re going to close the tag.
+    self._title_newly_opened = False
+    if self._in_title and data[-1] == ' ':
+      self._title_trailing_whitespace = True
+      data = data[:-1]
 
-      data = HTML_SPACE_RE.sub(' ', data)
-      if not data:
-        return
-
-      if self._in_pre_tag == 0 and self._data_buffer:
-        # If we're not in a pre block, its possible that we append two spaces
-        # together, which we want to avoid. For instance, if we remove a comment
-        # from between two blocks of text: a <!-- B --> c => a  c.
-        if data[0] == ' ' and self._data_buffer[-1][-1] == ' ':
-          data = data[1:]
-          if not data:
-            return
+    if data:
       self._data_buffer.append(data)
 
   def handle_entityref(self, data):
-    if self._in_title:
-      if not self._title_newly_opened and self.__title_trailing_whitespace:
-        self._data_buffer.append(' ')
-        self.__title_trailing_whitespace = False
-      self._title_newly_opened = False
-    self._data_buffer.append('&{};'.format(data))
+    self.handle_data('&{};'.format(data))
 
   def handle_charref(self, data):
-    if self._in_title:
-      if not self._title_newly_opened and self.__title_trailing_whitespace:
-        self._data_buffer.append(' ')
-        self.__title_trailing_whitespace = False
-      self._title_newly_opened = False
-    self._data_buffer.append('&#{};'.format(data))
+    self.handle_data('&#{};'.format(data))
 
   def handle_pi(self, data):
     self._data_buffer.append('<?' + data + '>')
@@ -395,7 +428,7 @@ class HTMLMinParser(HTMLParser):
     self._after_doctype = False
     self._tag_stack = []
     self._title_newly_opened = False
-    self.__title_trailing_whitespace = False
+    self._title_trailing_whitespace = False
     HTMLParser.reset(self)
 
   def unescape(self, val):
