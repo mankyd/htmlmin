@@ -70,7 +70,7 @@ def minify(input,
   :param remove_optional_attribute_quotes: When True, optional quotes around
     attributes are removed. When False, all attribute quotes are left intact.
     Defaults to True.
-  :param conver_charrefs: Decode character references such as &amp; and &#46;
+  :param convert_charrefs: Decode character references such as &amp; and &#46;
     to their single charater values where safe. This currently only applies to
     attributes. Data content between tags will be left encoded.
   :param keep_pre: By default, htmlmin uses the special attribute ``pre`` to
